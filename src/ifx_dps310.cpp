@@ -824,7 +824,7 @@ void IFX_Dps310::init(void)
 	}
 	m_productID = prodId;
 
-	int16_t revId = readByteBitfield(IFX_DPS310__REG_INFO_PROD_ID);
+	int16_t revId = readByteBitfield(IFX_DPS310__REG_INFO_REV_ID);
 	if(revId < 0)
 	{
 		m_initFail = 1U;
