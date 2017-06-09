@@ -10,15 +10,15 @@ const unsigned char temperatureLength = 50;
 long int temperature[temperatureLength];
 
 
- 
 
-void setup() 
+
+void setup()
 {
   //pin number of your slave select line
-  int pin_cs=3;
-  
+  int pin_cs = 3;
+
   Serial.begin(9600);
-  while(!Serial);
+  while (!Serial);
   SPI.begin();
   SPI.setDataMode(SPI_MODE3);
   pinMode(pin_cs, OUTPUT);
@@ -29,10 +29,15 @@ void setup()
   //This is necessary, because SDO will be used to indicate interrupts
   //ATTENTION: Make sure you have connected your MISO and MOSI pins right!
   //  There may NEVER be a direct Connection between MOSI and SDI when 3-wire SPI is enabled
-  //  Otherwise, you will cause shortcuts and seriously damage your equipment. 
+  //  Otherwise, you will cause shortcuts and seriously damage your equipment.
   //  For three wire interface, MISO has to be connected to SDI and there hase to be a resistor between MISO and MOSI
   //  I successfully tested this with a resistor of 1k, but I won't give you any warranty that this works for your equipment too
   ifxDps310.begin(SPI, pin_cs, 1);
+  
+  // IMPORTANT NOTE
+  //If you face the issue that the DPS310 indicates a temperature around 60 °C although it should be around 20 °C (room temperature), you might have got an IC with a fuse bit problem
+  //Call the following function directly after begin() to resolve this issue (needs only be called once after startup)
+  //ifxDps310.correctTemp()
 
   //config Dps310 for Interrupts
   int ret = ifxDps310.setInterruptPolarity(1);
@@ -52,8 +57,8 @@ void setup()
   int temp_osr = 2;
   int prs_mr = 1;
   int prs_osr = 3;
-  ret = ifxDps310.startMeasureBothCont(temp_mr, temp_osr, prs_mr, prs_osr); 
-  if(ret!=0)
+  ret = ifxDps310.startMeasureBothCont(temp_mr, temp_osr, prs_mr, prs_osr);
+  if (ret != 0)
   {
     Serial.print("Init FAILED! ret = ");
     Serial.println(ret);
@@ -75,14 +80,14 @@ void loop()
 
   //if result arrays are full
   //This could also be in the interrupt handler, but it would take too much time for an interrupt
-  if(pressureCount==pressureLength && temperatureCount==temperatureLength)
+  if (pressureCount == pressureLength && temperatureCount == temperatureLength)
   {
     //print results
     Serial.println();
     Serial.println();
     Serial.print(temperatureCount);
     Serial.println(" temperature values found: ");
-    for(int i=0; i<temperatureCount; i++)
+    for (int i = 0; i < temperatureCount; i++)
     {
       Serial.print(temperature[i]);
       Serial.println(" degrees of Celsius");
@@ -91,23 +96,23 @@ void loop()
     Serial.println();
     Serial.print(pressureCount);
     Serial.println(" pressure values found: ");
-    for(int i=0; i<pressureCount; i++)
+    for (int i = 0; i < pressureCount; i++)
     {
       Serial.print(pressure[i]);
       Serial.println(" Pascal");
-    } 
+    }
     Serial.println();
     Serial.println();
 
     //reset result counters
-    pressureCount=0;
-    temperatureCount=0;
+    pressureCount = 0;
+    temperatureCount = 0;
   }
-  
+
 }
 
 
-void onFifoFull() 
+void onFifoFull()
 {
   //message for debugging
   Serial.println("Interrupt handler called");
@@ -121,8 +126,8 @@ void onFifoFull()
   //read the results from Dps310, new results will be added at the end of the arrays
   ifxDps310.getContResults(&temperature[temperatureCount], temp_freespace, &pressure[pressureCount], prs_freespace);
   //after reading the result counters are increased by the amount of new results
-  pressureCount+=prs_freespace;
-  temperatureCount+=temp_freespace; 
+  pressureCount += prs_freespace;
+  temperatureCount += temp_freespace;
 
 
 }
