@@ -28,7 +28,7 @@ Please note that currently no specific evaluation board for Arduino is available
 ### Integration of Library
 Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository or directly [here](https://github.com/Infineon/DPS310-Pressure-Sensor/releases/download/V1.0.1/IFX-DPS310-Pressure-Sensor.zip):
 
-![Download Library](https://raw.githubusercontent.com/infineon/assets/master/Pictures/DL_DPS310_Rel.jpg)
+![Download Library](https://raw.githubusercontent.com/Infineon/assets/master/Pictures/DL_DPS310_Rel.jpg)
 
 To install the 3D magnetic sensor 2GO library in the Arduino IDE, please go now to **Sketch** > **Include Library** > **Add .ZIP Library...** in the Arduino IDE and navigate to the downloaded .ZIP file of this repository. The library will be installed in your Arduino sketch folder in libraries and you can select as well as include this one to your project under **Sketch** > **Include Library** > **MagneticSensor3D**.
 
