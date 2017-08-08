@@ -23,7 +23,7 @@ void setup()
   // IMPORTANT NOTE
   //If you face the issue that the DPS310 indicates a temperature around 60 °C although it should be around 20 °C (room temperature), you might have got an IC with a fuse bit problem
   //Call the following function directly after begin() to resolve this issue (needs only be called once after startup)
-  //ifxDps310.correctTemp()
+  //ifxDps310.correctTemp();
   
   int ret = ifxDps310.setInterruptPolarity(1);
   ret = ifxDps310.setInterruptSources(1, 0, 0);
