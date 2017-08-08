@@ -20,7 +20,7 @@ void setup()
   // IMPORTANT NOTE
   //If you face the issue that the DPS310 indicates a temperature around 60 °C although it should be around 20 °C (room temperature), you might have got an IC with a fuse bit problem
   //Call the following function directly after begin() to resolve this issue (needs only be called once after startup)
-  //ifxDps310.correctTemp()
+  //ifxDps310.correctTemp();
 
   //temperature measure rate (value from 0 to 7)
   //2^temp_mr temperature measurement results per second
