@@ -3,14 +3,10 @@
 void setup()
 {
   //pin number of your slave select line
-  int pin_cs = 3;
+  int pin_cs = SS;
 
   Serial.begin(9600);
   while (!Serial);
-  SPI.begin();
-  SPI.setDataMode(SPI_MODE3);
-  pinMode(pin_cs, OUTPUT);
-  digitalWrite(pin_cs, HIGH);
 
 
   //Call begin to initialize ifxDps310
