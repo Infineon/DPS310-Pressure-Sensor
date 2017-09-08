@@ -1,14 +1,14 @@
 /**
  * Arduino library to control IFX_DPS310
  *
- * "IFX_DPS310" represents Infineon's high-sensetive pressure and temperature sensor.
- * It measures in ranges of 300 - 1200 hPa and -40 and 85 °C.
- * The sensor can be connected via SPI or I2C.
+ * "IFX_DPS310" represents Infineon's high-sensetive pressure and temperature sensor. 
+ * It measures in ranges of 300 - 1200 hPa and -40 and 85 °C. 
+ * The sensor can be connected via SPI or I2C. 
  * It is able to perform single measurements
- * or to perform continuous measurements of temperature and pressure at the same time,
- * and stores the results in a FIFO to reduce bus communication.
+ * or to perform continuous measurements of temperature and pressure at the same time, 
+ * and stores the results in a FIFO to reduce bus communication. 
  *
- * Have a look at the datasheet for more information.
+ * Have a look at the datasheet for more information. 
  */
 
 
@@ -70,6 +70,9 @@ void IFX_Dps310::begin(TwoWire &bus, uint8_t slaveAddress)
 	m_i2cbus = &bus;
 	m_slaveAddress = slaveAddress;
 
+	// Init bus
+	m_i2cbus->begin();
+
 	delay(50);		//startup time of Dps310
 
 	init();
@@ -100,6 +103,13 @@ void IFX_Dps310::begin(SPIClass &bus, int32_t chipSelect, uint8_t threeWire)
 	m_SpiI2c = 0U;
 	m_spibus = &bus;
 	m_chipSelect = chipSelect;
+
+	// Init bus
+	m_spibus->begin();
+	m_spibus->setDataMode(SPI_MODE3);
+
+	pinMode(m_chipSelect, OUTPUT);
+	digitalWrite(m_chipSelect, HIGH);
 
 	delay(50);		//startup time of Dps310
 
@@ -833,13 +843,13 @@ int16_t IFX_Dps310::correctTemp(void)
 	writeByte(0x62, 0x02);
 	writeByte(0x0E, 0x00);
 	writeByte(0x0F, 0x00);
-
+	
 	//perform a first temperature measurement (again)
 	//the most recent temperature will be saved internally
 	//and used for compensation when calculating pressure
 	int32_t trash;
 	measureTempOnce(trash);
-
+	
 	return IFX_DPS310__SUCCEEDED;
 }
 
@@ -909,7 +919,7 @@ void IFX_Dps310::init(void)
 	measureTempOnce(trash);
 
 	//make sure the DPS310 is in standby after initialization
-	standby();
+	standby();	
 }
 
 
@@ -1317,7 +1327,7 @@ int16_t IFX_Dps310::getFIFOvalue(int32_t* value)
 int32_t IFX_Dps310::calcTemp(int32_t raw)
 {
 	double temp = raw;
-
+	
 	//scale temperature according to scaling table and oversampling
 	temp /= scaling_facts[m_tempOsr];
 

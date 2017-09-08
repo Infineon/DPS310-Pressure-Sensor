@@ -15,9 +15,11 @@ void setup()
 {
   Serial.begin(9600);
   while (!Serial);
-  Wire.begin();
 
-  //begin and config Dps310 for interrupts
+  //Call begin to initialize ifxDps310
+  //The parameter 0x76 is the bus address. The default address is 0x77 and does not need to be given.
+  //ifxDps310.begin(Wire, 0x76);
+  //Use the commented line below instead to use the default I2C address.
   ifxDps310.begin(Wire);
 
   // IMPORTANT NOTE
