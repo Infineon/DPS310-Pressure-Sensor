@@ -914,6 +914,10 @@ void Dps310::init(void)
 
 	//make sure the DPS310 is in standby after initialization
 	standby();	
+
+	// Fix IC with a fuse bit problem, which lead to a wrong temperature 
+	// Should not affect ICs without this problem
+	correctTemp();
 }
 
 

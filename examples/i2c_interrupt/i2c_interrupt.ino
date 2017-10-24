@@ -24,11 +24,6 @@ void setup()
   //Dps310PressureSensor.begin(Wire, 0x76);
   //Use the commented line below instead to use the default I2C address.
   Dps310PressureSensor.begin(Wire);
-
-  // IMPORTANT NOTE
-  //If you face the issue that the DPS310 indicates a temperature around 60 °C although it should be around 20 °C (room temperature), you might have got an IC with a fuse bit problem
-  //Call the following function directly after begin() to resolve this issue (needs only be called once after startup)
-  //Dps310PressureSensor.correctTemp();
   
   int16_t ret = Dps310PressureSensor.setInterruptPolarity(1);
   ret = Dps310PressureSensor.setInterruptSources(1, 0, 0);
