@@ -32,11 +32,6 @@ void setup()
   //  For three wire interface, MISO has to be connected to SDI and there hase to be a resistor between MISO and MOSI
   //  I successfully tested this with a resistor of 1k, but I won't give you any warranty that this works for your equipment too
   Dps310PressureSensor.begin(SPI, pin_cs, 1);
-  
-  // IMPORTANT NOTE
-  //If you face the issue that the DPS310 indicates a temperature around 60 °C although it should be around 20 °C (room temperature), you might have got an IC with a fuse bit problem
-  //Call the following function directly after begin() to resolve this issue (needs only be called once after startup)
-  //Dps310PressureSensor.correctTemp();
 
   //config Dps310 for Interrupts
   int16_t ret = Dps310PressureSensor.setInterruptPolarity(1);

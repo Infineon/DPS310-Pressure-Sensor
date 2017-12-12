@@ -819,9 +819,9 @@ int16_t Dps310::getIntStatusPrsReady(void)
 }
 
 /**
- * function to fix a hardware problem on some devices
- * you have this bug if you measure around 60°C when temperature is around 20°C
- * call correctTemp() directly after begin() to fix this issue
+ * Function to fix a hardware problem on some devices
+ * You have this problem if you measure a temperature which is too high (e.g. 60°C when temperature is around 20°C)
+ * Call correctTemp() directly after begin() to fix this issue
  */
 int16_t Dps310::correctTemp(void)
 {
@@ -829,9 +829,6 @@ int16_t Dps310::correctTemp(void)
 	{
 		return DPS310__FAIL_INIT_FAILED;
 	}
-	// some magic to fix a hardware problem on some devices
-	// you have this bug if you measure around 60°C when temperature is around 20°C
-	// call correctTemp() directly after begin() to fix this issue
 	writeByte(0x0E, 0xA5);
 	writeByte(0x0F, 0x96);
 	writeByte(0x62, 0x02);
@@ -914,6 +911,10 @@ void Dps310::init(void)
 
 	//make sure the DPS310 is in standby after initialization
 	standby();	
+
+	// Fix IC with a fuse bit problem, which lead to a wrong temperature 
+	// Should not affect ICs without this problem
+	correctTemp();
 }
 
 
