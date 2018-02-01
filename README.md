@@ -26,7 +26,7 @@ Please note that currently no specific evaluation board for Arduino is available
 ## Installation
 
 ### Integration of Library
-Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository or directly [here](https://github.com/Infineon/DPS310-Pressure-Sensor/releases/download/V1.0.1/IFX-DPS310-Pressure-Sensor.zip):
+Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository or directly [here](https://github.com/Infineon/DPS310-Pressure-Sensor/releases/download/V1.0.5/DPS310-Pressure-Sensor.zip):
 
 ![Download Library](https://raw.githubusercontent.com/Infineon/assets/master/Pictures/DL_DPS310_Rel.jpg)
 
