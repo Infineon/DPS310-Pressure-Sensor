@@ -18,7 +18,7 @@ typedef struct
     uint8_t length;
 } RegBlock_t;
 
-// namespace 
+// namespace
 
 enum Registers_e
 {

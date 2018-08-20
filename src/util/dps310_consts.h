@@ -1,29 +1,16 @@
-/**
- * Arduino library to control Dps310
- *
- * "Dps310" represents Infineon's high-sensetive pressure and temperature sensor. 
- * It measures in ranges of 300 - 1200 hPa and -40 and 85 °C. 
- * The sensor can be connected via SPI or I2C. 
- * It is able to perform single measurements
- * or to perform continuous measurements of temperature and pressure at the same time, 
- * and stores the results in a FIFO to reduce bus communication. 
- *
- * Have a look at the datasheet for more information. 
- */
 
 #ifndef DPS310_CONSTS_H_
 #define DPS310_CONSTS_H_
 
 
-	//general Constants
-#define DPS310__PROD_ID						0U
+//general Constants
+#define DPS310__PROD_ID						0x00
+#define DPS422__PROD_ID						0x0A
 #define DPS310__STD_SLAVE_ADDRESS 			0x77U
 #define DPS310__SPI_WRITE_CMD 				0x00U
 #define DPS310__SPI_READ_CMD 				0x80U
 #define DPS310__SPI_RW_MASK 				0x80U
 #define DPS310__SPI_MAX_FREQ 				100000U
-
-#define DPS310__LSB 0x01U
 
 #define DPS310__TEMP_STD_MR					2U
 #define DPS310__TEMP_STD_OSR				3U
@@ -39,11 +26,11 @@
 #define DPS310__MAX_BUSYTIME 				((1000U-DPS310__BUSYTIME_FAILSAFE)*DPS310__BUSYTIME_SCALING)
 #define DPS310__NUM_OF_SCAL_FACTS			8
 
-#define DPS310__SUCCEEDED 					0
-#define DPS310__FAIL_UNKNOWN 				-1
-#define DPS310__FAIL_INIT_FAILED 			-2
-#define DPS310__FAIL_TOOBUSY 				-3
-#define DPS310__FAIL_UNFINISHED 			-4
+#define DPS__SUCCEEDED						0
+#define DPS__FAIL_UNKNOWN 					-1
+#define DPS__FAIL_INIT_FAILED 				-2
+#define DPS__FAIL_TOOBUSY 					-3
+#define DPS__FAIL_UNFINISHED 				-4
 
 #define DPS310__REG_ADR_SPI3W 				0x09U
 #define DPS310__REG_CONTENT_SPI3W 			0x01U
