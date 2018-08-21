@@ -16,6 +16,4 @@ typedef struct
     uint8_t length;
 } RegBlock_t;
 
-// namespace
-
 #endif

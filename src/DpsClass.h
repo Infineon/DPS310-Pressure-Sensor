@@ -18,7 +18,6 @@
 #include <Wire.h>
 #include "util/dps310_consts.h"
 #include "util/DpsRegister.h"
-#define DPS_NUM_OF_REGBLOCKS 3
 
 class DpsClass
 {
@@ -355,22 +354,6 @@ class DpsClass
 	int16_t correctTemp(void);
 
   protected:
-	enum RegisterBlocks_e
-	{
-		PRS = 0,  // pressure value
-		TEMP, // temperature value
-		COEF, // compensation coefficients
-	};
-	enum CommonRegisters_e
-	{
-		FIFO_EN = 0,	//FIFO enable
-		FIFO_FL,	//FIFO flush
-		FIFO_EMPTY, //FIFO empty
-		FIFO_FULL,  //FIFO full
-	};
-
-	RegMask_t commonRegisters[4];
-	RegBlock_t registerBlocks[DPS_NUM_OF_REGBLOCKS];
 
 	//scaling factor table
 	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
@@ -399,9 +382,7 @@ class DpsClass
 	uint8_t m_prsOsr;
 	uint8_t m_tempSensor;
 
-	//compensation coefficients
-	int32_t m_c0Half;
-	int32_t m_c1;
+	// compensation coefficients for both dps310 and dps422
 	int32_t m_c00;
 	int32_t m_c10;
 	int32_t m_c01;
@@ -539,13 +520,13 @@ class DpsClass
 	 * raw: 	raw temperature value read from Dps310
 	 * returns: temperature value in °C
 	 */
-	int32_t calcTemp(int32_t raw);
+	virtual int32_t calcTemp(int32_t raw) = 0;
 	/**
 	 * Calculates a scaled and compensated pressure value from raw data
 	 * raw: 	raw pressure value read from Dps310
 	 * returns: pressure value in Pa
 	 */
-	int32_t calcPressure(int32_t raw);
+	virtual int32_t calcPressure(int32_t raw) = 0;
 	/**
 	 * reads a byte from dps310
 	 *
@@ -656,6 +637,10 @@ class DpsClass
 	 * 				or -1 on fail
 	 */
 	int16_t readByteBitfield(RegMask_t regMask);
+	
+	//this construction recognizes non-32-bit negative numbers
+	//and converts them to 32-bit negative numbers with 2's complement
+	void getTwosComplement(int32_t *raw, uint8_t length);
 };
 
 #endif //DPSCLASS_H_INCLUDED

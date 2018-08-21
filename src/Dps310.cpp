@@ -1,12 +1,5 @@
 #include "Dps310.h"
 
-Dps310::Dps310()
-{
-	registerBlocks[PRS] = {0x00, 3};
-	registerBlocks[TEMP] = {0x03, 3};
-	registerBlocks[COEF] = {0x10, 18};
-}
-
 int16_t Dps310::getSingleResult(int32_t &result)
 {
 	//abort if initialization failed
@@ -223,69 +216,33 @@ int16_t Dps310::readcoeffs(void)
 	// TODO: remove magic number
 	uint8_t buffer[18];
 	//read COEF registers to buffer
-	int16_t ret = readBlock(registerBlocks[COEF],
-							buffer);
+	int16_t ret = readBlock(registerBlocks[COEF], buffer);
 
 	//compose coefficients from buffer content
 	m_c0Half = ((uint32_t)buffer[0] << 4) | (((uint32_t)buffer[1] >> 4) & 0x0F);
-	//this construction recognizes non-32-bit negative numbers
-	//and converts them to 32-bit negative numbers with 2's complement
-	if (m_c0Half & ((uint32_t)1 << 11))
-	{
-		m_c0Half -= (uint32_t)1 << 12;
-	}
+	getTwosComplement(&m_c0Half, 12);
 	//c0 is only used as c0*0.5, so c0_half is calculated immediately
 	m_c0Half = m_c0Half / 2U;
 
 	//now do the same thing for all other coefficients
 	m_c1 = (((uint32_t)buffer[1] & 0x0F) << 8) | (uint32_t)buffer[2];
-	if (m_c1 & ((uint32_t)1 << 11))
-	{
-		m_c1 -= (uint32_t)1 << 12;
-	}
-
+	getTwosComplement(&m_c1, 12);
 	m_c00 = ((uint32_t)buffer[3] << 12) | ((uint32_t)buffer[4] << 4) | (((uint32_t)buffer[5] >> 4) & 0x0F);
-	if (m_c00 & ((uint32_t)1 << 19))
-	{
-		m_c00 -= (uint32_t)1 << 20;
-	}
-
+	getTwosComplement(&m_c00, 20);
 	m_c10 = (((uint32_t)buffer[5] & 0x0F) << 16) | ((uint32_t)buffer[6] << 8) | (uint32_t)buffer[7];
-	if (m_c10 & ((uint32_t)1 << 19))
-	{
-		m_c10 -= (uint32_t)1 << 20;
-	}
+	getTwosComplement(&m_c10, 20);
 
 	m_c01 = ((uint32_t)buffer[8] << 8) | (uint32_t)buffer[9];
-	if (m_c01 & ((uint32_t)1 << 15))
-	{
-		m_c01 -= (uint32_t)1 << 16;
-	}
+	getTwosComplement(&m_c01, 16);
 
 	m_c11 = ((uint32_t)buffer[10] << 8) | (uint32_t)buffer[11];
-	if (m_c11 & ((uint32_t)1 << 15))
-	{
-		m_c11 -= (uint32_t)1 << 16;
-	}
-
+	getTwosComplement(&m_c11, 16);
 	m_c20 = ((uint32_t)buffer[12] << 8) | (uint32_t)buffer[13];
-	if (m_c20 & ((uint32_t)1 << 15))
-	{
-		m_c20 -= (uint32_t)1 << 16;
-	}
-
+	getTwosComplement(&m_c20, 16);
 	m_c21 = ((uint32_t)buffer[14] << 8) | (uint32_t)buffer[15];
-	if (m_c21 & ((uint32_t)1 << 15))
-	{
-		m_c21 -= (uint32_t)1 << 16;
-	}
-
+	getTwosComplement(&m_c21, 16);
 	m_c30 = ((uint32_t)buffer[16] << 8) | (uint32_t)buffer[17];
-	if (m_c30 & ((uint32_t)1 << 15))
-	{
-		m_c30 -= (uint32_t)1 << 16;
-	}
-
+	getTwosComplement(&m_c30, 16);
 	return DPS__SUCCEEDED;
 }
 
@@ -404,6 +361,38 @@ int16_t Dps310::configPressure(uint8_t prsMr, uint8_t prsOsr)
 		}
 	}
 	return ret;
+}
+
+int32_t Dps310::calcTemp(int32_t raw)
+{
+	double temp = raw;
+
+	//scale temperature according to scaling table and oversampling
+	temp /= scaling_facts[m_tempOsr];
+
+	//update last measured temperature
+	//it will be used for pressure compensation
+	m_lastTempScal = temp;
+
+	//Calculate compensated temperature
+	temp = m_c0Half + m_c1 * temp;
+
+	//return temperature
+	return (int32_t)temp;
+}
+
+int32_t Dps310::calcPressure(int32_t raw)
+{
+	double prs = raw;
+
+	//scale pressure according to scaling table and oversampling
+	prs /= scaling_facts[m_prsOsr];
+
+	//Calculate compensated pressure
+	prs = m_c00 + prs * (m_c10 + prs * (m_c20 + prs * m_c30)) + m_lastTempScal * (m_c01 + prs * (m_c11 + prs * m_c21));
+
+	//return pressure
+	return (int32_t)prs;
 }
 
 int16_t Dps310::enableFIFO()

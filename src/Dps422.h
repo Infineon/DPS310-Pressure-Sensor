@@ -7,7 +7,6 @@
 class Dps422 : public DpsClass
 {
   public:
-    Dps422::Dps422();
     int16_t getSingleResult(int32_t &result);
     int16_t getContResults(int32_t *tempBuffer, uint8_t &tempCount, int32_t *prsBuffer, uint8_t &prsCount);
     int16_t setInterruptPolarity(uint8_t polarity);
@@ -17,6 +16,11 @@ class Dps422 : public DpsClass
     int16_t getIntStatusPrsReady(void);
 
   protected:
+    //compensation coefficients (for simplicity use 32 bits)
+    int32_t t_gain;
+    int32_t t_dVbe;
+    int32_t t_Vbe;
+
     enum Registers_e
     {
         // measurement config
@@ -81,6 +85,20 @@ class Dps422 : public DpsClass
         {0x09, 0x01, 0}, // SPI_MODE
         {0x0D, 0x0F, 0}, // SOFT_RESET
     };
+    enum RegisterBlocks_e
+    {
+        PRS = 0,   // pressure value
+        TEMP,      // temperature value
+        COEF_TEMP, // compensation coefficients
+        COEF_PRS,
+    };
+
+    RegBlock_t registerBlocks[4] = {
+        {0x00, 3},
+        {0x03, 3},
+        {0x20, 3},
+        {0x26, 20},
+    };
 
     void init(void);
     int16_t configTemp(uint8_t temp_mr, uint8_t temp_osr);
@@ -90,6 +108,8 @@ class Dps422 : public DpsClass
     int16_t getFIFOvalue(int32_t *value);
     int16_t enableFIFO();
     int16_t disableFIFO();
+    int32_t calcTemp(int32_t raw){};
+    int32_t calcPressure(int32_t raw){};
 };
 
 #endif

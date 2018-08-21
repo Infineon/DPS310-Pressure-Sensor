@@ -1,11 +1,5 @@
 #include "Dps422.h"
 
-Dps422::Dps422()
-{
-	registerBlocks[PRS] = {0x00, 3};
-	registerBlocks[TEMP] = {0x03, 3};
-	registerBlocks[COEF] = {0x20, 23};
-}
 
 int16_t Dps422::getSingleResult(int32_t &result)
 {
@@ -124,7 +118,15 @@ int16_t Dps422::configPressure(uint8_t prsMr, uint8_t prsOsr)
 	m_prsOsr = prsOsr;
 }
 
-int16_t Dps422::readcoeffs(void) {}
+int16_t Dps422::readcoeffs(void) {
+	uint8_t buffer_temp[3];
+	uint8_t buffer_prs[20];
+	readBlock(registerBlocks[COEF_TEMP], buffer_temp);
+	readBlock(registerBlocks[COEF_PRS], buffer_prs);
+
+	
+	return DPS__SUCCEEDED;
+}
 
 int16_t Dps422::enableFIFO()
 {

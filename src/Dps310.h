@@ -8,7 +8,6 @@
 class Dps310 : public DpsClass
 {
   public:
-    Dps310::Dps310();
     int16_t getSingleResult(int32_t &result);
     int16_t getContResults(int32_t *tempBuffer, uint8_t &tempCount, int32_t *prsBuffer, uint8_t &prsCount);
     int16_t setInterruptPolarity(uint8_t polarity);
@@ -18,6 +17,10 @@ class Dps310 : public DpsClass
     int16_t getIntStatusPrsReady(void);
 
   protected:
+    //compensation coefficients
+    int32_t m_c0Half;
+    int32_t m_c1;
+
     enum Registers_e
     {
         PROD_ID = 0,
@@ -73,15 +76,31 @@ class Dps310 : public DpsClass
         {0x0A, 0x01, 0}, // INT_FLAG_PRS
     };
 
+    enum RegisterBlocks_e
+    {
+        PRS = 0, // pressure value
+        TEMP,    // temperature value
+        COEF,    // compensation coefficients
+    };
+
+    RegBlock_t registerBlocks[3] = {
+        {0x00, 3},
+        {0x03, 3},
+        {0x10, 18},
+    };
+
     void init(void);
     int16_t configTemp(uint8_t temp_mr, uint8_t temp_osr);
     int16_t configPressure(uint8_t prs_mr, uint8_t prs_osr);
     int16_t readcoeffs(void);
     int16_t setOpMode(uint8_t opMode);
     int16_t getFIFOvalue(int32_t *value);
-    
+
     int16_t enableFIFO();
     int16_t disableFIFO();
+
+    int32_t calcTemp(int32_t raw);
+    int32_t calcPressure(int32_t raw);
 };
 
 #endif

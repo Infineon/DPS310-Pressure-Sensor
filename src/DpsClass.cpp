@@ -370,38 +370,6 @@ uint16_t DpsClass::calcBusyTime(uint16_t mr, uint16_t osr)
 	return ((uint32_t)20U << mr) + ((uint32_t)16U << (osr + mr));
 }
 
-int32_t DpsClass::calcTemp(int32_t raw)
-{
-	double temp = raw;
-
-	//scale temperature according to scaling table and oversampling
-	temp /= scaling_facts[m_tempOsr];
-
-	//update last measured temperature
-	//it will be used for pressure compensation
-	m_lastTempScal = temp;
-
-	//Calculate compensated temperature
-	temp = m_c0Half + m_c1 * temp;
-
-	//return temperature
-	return (int32_t)temp;
-}
-
-int32_t DpsClass::calcPressure(int32_t raw)
-{
-	double prs = raw;
-
-	//scale pressure according to scaling table and oversampling
-	prs /= scaling_facts[m_prsOsr];
-
-	//Calculate compensated pressure
-	prs = m_c00 + prs * (m_c10 + prs * (m_c20 + prs * m_c30)) + m_lastTempScal * (m_c01 + prs * (m_c11 + prs * m_c21));
-
-	//return pressure
-	return (int32_t)prs;
-}
-
 int16_t DpsClass::readByte(uint8_t regAddress)
 {
 	//delegate to specialized function if Dps310 is connected via SPI
@@ -663,4 +631,12 @@ int16_t DpsClass::getPressure(int32_t *result, RegBlock_t reg)
 
 	*result = calcPressure(prs);
 	return DPS__SUCCEEDED;
+}
+
+void DpsClass::getTwosComplement(int32_t *raw, uint8_t length)
+{
+	if (*raw & ((uint32_t)1 << (length-1)))
+	{
+		*raw -= (uint32_t)1 << length;
+	}
 }
