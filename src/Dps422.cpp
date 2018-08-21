@@ -1,6 +1,5 @@
 #include "Dps422.h"
 
-
 int16_t Dps422::getSingleResult(int32_t &result)
 {
 	int16_t rdy;
@@ -71,6 +70,7 @@ int16_t Dps422::getIntStatusPrsReady(void)
 
 void Dps422::init(void)
 {
+	readcoeffs();
 	standby();
 	configTemp(DPS310__TEMP_STD_MR, DPS310__TEMP_STD_OSR);
 	configPressure(DPS310__PRS_STD_MR, DPS310__PRS_STD_OSR);
@@ -118,13 +118,40 @@ int16_t Dps422::configPressure(uint8_t prsMr, uint8_t prsOsr)
 	m_prsOsr = prsOsr;
 }
 
-int16_t Dps422::readcoeffs(void) {
+int16_t Dps422::readcoeffs(void)
+{
 	uint8_t buffer_temp[3];
 	uint8_t buffer_prs[20];
 	readBlock(registerBlocks[COEF_TEMP], buffer_temp);
 	readBlock(registerBlocks[COEF_PRS], buffer_prs);
 
-	
+	t_gain = buffer_temp[0];								 // 8 bits
+	t_dVbe = (buffer_temp[1] & 0xFE) >> 1;					 // 7 bits
+	t_Vbe = ((buffer_temp[1] & 0x01) << 8) | buffer_temp[2]; // 9 bits
+
+	// c00, c01, c02, c10 : 20 bits
+	// c11, c12: 17 bits
+	// c20: 15 bits; c21: 14 bits; c30 12 bits
+	m_c00 = ((uint32_t)buffer_prs[0] << 12) | ((uint32_t)buffer_prs[1] << 4) | (((uint32_t)buffer_prs[2] & 0xF0) >> 4);
+	m_c10 = ((uint32_t)(buffer_prs[2] & 0x0F) << 16) | ((uint32_t)buffer_prs[3] << 8) | (uint32_t)buffer_prs[4];
+	m_c01 = ((uint32_t)buffer_prs[5] << 12) | ((uint32_t)buffer_prs[6] << 4) | (((uint32_t)buffer_prs[7] & 0xF0) >> 4);
+	m_c02 = ((uint32_t)(buffer_prs[7] & 0x0F) << 16) | ((uint32_t)buffer_prs[8] << 8) | (uint32_t)buffer_prs[9];
+	m_c20 = ((uint32_t)(buffer_prs[10] & 0xEF) << 10) | (uint32_t)buffer_prs[11];
+	m_c30 = ((uint32_t)(buffer_prs[12] & 0x0F) << 8) | (uint32_t)buffer_prs[13];
+	m_c11 = ((uint32_t)buffer_prs[14] << 9) | ((uint32_t)buffer_prs[15] << 1) | (((uint32_t)buffer_prs[16] & 0x80) >> 7);
+	m_c12 = (((uint32_t)buffer_prs[16] & 0xEF) << 10) | ((uint32_t)buffer_prs[17] << 2) | (((uint32_t)buffer_prs[18] & 0xC0) >> 6);
+	m_c21 = (((uint32_t)buffer_prs[18] & 0x3F) << 8) | ((uint32_t)buffer_prs[19]);
+
+	getTwosComplement(&m_c00, 20);
+	getTwosComplement(&m_c01, 20);
+	getTwosComplement(&m_c02, 20);
+	getTwosComplement(&m_c10, 20);
+	getTwosComplement(&m_c11, 17);
+	getTwosComplement(&m_c12, 17);
+	getTwosComplement(&m_c20, 15);
+	getTwosComplement(&m_c21, 14);
+	getTwosComplement(&m_c30, 12);
+
 	return DPS__SUCCEEDED;
 }
 

@@ -20,6 +20,8 @@ class Dps422 : public DpsClass
     int32_t t_gain;
     int32_t t_dVbe;
     int32_t t_Vbe;
+    int32_t m_c02;
+    int32_t m_c12;
 
     enum Registers_e
     {

@@ -589,7 +589,6 @@ int16_t DpsClass::readBlock(RegBlock_t regBlock, uint8_t *buffer)
 	for (int16_t count = 0; count < ret; count++)
 	{
 		buffer[count] = m_i2cbus->read();
-		// Serial.println(buffer[count]);
 	}
 	return ret;
 }
@@ -610,7 +609,7 @@ int16_t DpsClass::getTemp(int32_t *result, RegBlock_t reg)
 
 	//return temperature
 	*result = calcTemp(temp);
-	Serial.println(temp);
+	// Serial.println(temp);
 	return DPS__SUCCEEDED;
 }
 
@@ -621,7 +620,7 @@ int16_t DpsClass::getPressure(int32_t *result, RegBlock_t reg)
 
 	//compose raw pressure value from buffer
 	int32_t prs = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
-	Serial.println(prs);
+	// Serial.println(prs);
 	//recognize non-32-bit negative numbers
 	//and convert them to 32-bit negative numbers using 2's complement
 	if (prs & ((uint32_t)1 << 23))
