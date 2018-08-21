@@ -1,26 +1,10 @@
 #include "Dps310.h"
-int16_t Dps310::standby(void)
+
+Dps310::Dps310()
 {
-	//abort if initialization failed
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	//set device to idling mode
-	int16_t ret = setOpMode(IDLE);
-	if (ret != DPS__SUCCEEDED)
-	{
-		return ret;
-	}
-	//flush the FIFO
-	ret = writeByteBitfield(1U, registers[FIFO_FL]);
-	if (ret < 0)
-	{
-		return ret;
-	}
-	//disable the FIFO
-	ret = writeByteBitfield(0U, registers[FIFO_EN]);
-	return ret;
+	registerBlocks[PRS] = {0x00, 3};
+	registerBlocks[TEMP] = {0x03, 3};
+	registerBlocks[COEF] = {0x10, 18};
 }
 
 int16_t Dps310::getSingleResult(int32_t &result)
@@ -53,128 +37,19 @@ int16_t Dps310::getSingleResult(int32_t &result)
 	case 0: //ready flag not set, measurement still in progress
 		return DPS__FAIL_UNFINISHED;
 	case 1: //measurement ready, expected case
-		Dps310::Mode oldMode = m_opMode;
+		DpsClass::Mode oldMode = m_opMode;
 		m_opMode = IDLE; //opcode was automatically reseted by DPS310
 		switch (oldMode)
 		{
-		case CMD_TEMP:					 //temperature
-			return getTemp(&result);	 //get and calculate the temperature value
-		case CMD_PRS:					 //pressure
-			return getPressure(&result); //get and calculate the pressure value
+		case CMD_TEMP:										  //temperature
+			return getTemp(&result, registerBlocks[TEMP]);	//get and calculate the temperature value
+		case CMD_PRS:										  //pressure
+			return getPressure(&result, registerBlocks[PRS]); //get and calculate the pressure value
 		default:
 			return DPS__FAIL_UNKNOWN; //should already be filtered above
 		}
 	}
 	return DPS__FAIL_UNKNOWN;
-}
-
-int16_t Dps310::startMeasureTempCont(uint8_t measureRate, uint8_t oversamplingRate)
-{
-	//abort if initialization failed
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	//abort if device is not in idling mode
-	if (m_opMode != IDLE)
-	{
-		return DPS__FAIL_TOOBUSY;
-	}
-	//abort if speed and precision are too high
-	if (calcBusyTime(measureRate, oversamplingRate) >= DPS310__MAX_BUSYTIME)
-	{
-		return DPS__FAIL_UNFINISHED;
-	}
-	//update precision and measuring rate
-	if (configTemp(measureRate, oversamplingRate))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	//enable result FIFO
-	if (writeByteBitfield(1U, registers[FIFO_EN]))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	//Start measuring in background mode
-	if (DpsClass::setOpMode(1U, 1U, 0U))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	return DPS__SUCCEEDED;
-}
-
-int16_t Dps310::startMeasurePressureCont(uint8_t measureRate, uint8_t oversamplingRate)
-{
-	//abort if initialization failed
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	//abort if device is not in idling mode
-	if (m_opMode != IDLE)
-	{
-		return DPS__FAIL_TOOBUSY;
-	}
-	//abort if speed and precision are too high
-	if (calcBusyTime(measureRate, oversamplingRate) >= DPS310__MAX_BUSYTIME)
-	{
-		return DPS__FAIL_UNFINISHED;
-	}
-	//update precision and measuring rate
-	if (configPressure(measureRate, oversamplingRate))
-		return DPS__FAIL_UNKNOWN;
-	//enable result FIFO
-	if (writeByteBitfield(1U, registers[FIFO_EN]))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	//Start measuring in background mode
-	if (DpsClass::setOpMode(1U, 0U, 1U))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	return DPS__SUCCEEDED;
-}
-
-int16_t Dps310::startMeasureBothCont(uint8_t tempMr,
-									 uint8_t tempOsr,
-									 uint8_t prsMr,
-									 uint8_t prsOsr)
-{
-	//abort if initialization failed
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	//abort if device is not in idling mode
-	if (m_opMode != IDLE)
-	{
-		return DPS__FAIL_TOOBUSY;
-	}
-	//abort if speed and precision are too high
-	if (calcBusyTime(tempMr, tempOsr) + calcBusyTime(prsMr, prsOsr) >= DPS310__MAX_BUSYTIME)
-	{
-		return DPS__FAIL_UNFINISHED;
-	}
-	//update precision and measuring rate
-	if (configTemp(tempMr, tempOsr))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	//update precision and measuring rate
-	if (configPressure(prsMr, prsOsr))
-		return DPS__FAIL_UNKNOWN;
-	//enable result FIFO
-	if (writeByteBitfield(1U, registers[FIFO_EN]))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	//Start measuring in background mode
-	if (DpsClass::setOpMode(1U, 1U, 1U))
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	return DPS__SUCCEEDED;
 }
 
 int16_t Dps310::getContResults(int32_t *tempBuffer,
@@ -187,7 +62,7 @@ int16_t Dps310::getContResults(int32_t *tempBuffer,
 		return DPS__FAIL_INIT_FAILED;
 	}
 	//abort if device is not in background mode
-	if (!(m_opMode & INVAL_OP_CONT_NONE))
+	if (!(m_opMode & 0x04))
 	{
 		return DPS__FAIL_TOOBUSY;
 	}
@@ -282,23 +157,14 @@ int16_t Dps310::getIntStatusPrsReady(void)
 
 void Dps310::init(void)
 {
-	// int16_t prodId = readByteBitfield(registers[PROD_ID]);
-	// if (prodId < 0)
-	// {
-	// 	//Connected device is not a Dps310
-	// 	m_initFail = 1U;
-	// 	return;
-	// }
-	// m_productID = prodId;
-
-	// if (m_productID == DPS310__PROD_ID)
-	// {
-	// 	dpsRegister = Dps310Register();
-	// }
-	// else if (m_productID == DPS422__PROD_ID)
-	// {
-	// 	dpsRegister = Dps422Register();
-	// }
+	int16_t prodId = readByteBitfield(registers[PROD_ID]);
+	if (prodId < 0)
+	{
+		//Connected device is not a Dps310
+		m_initFail = 1U;
+		return;
+	}
+	m_productID = prodId;
 
 	int16_t revId = readByteBitfield(registers[REV_ID]);
 	if (revId < 0)
@@ -449,41 +315,13 @@ int16_t Dps310::getFIFOvalue(int32_t *value)
 	return buffer[2] & 0x01;
 }
 
-int16_t Dps310::getTemp(int32_t *result)
-{
-	uint8_t buffer[3] = {0};
-	//read raw pressure data to buffer
-
-	int16_t i = readBlock(registerBlocks[TEMP],
-						  buffer);
-
-	//compose raw temperature value from buffer
-	int32_t temp = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
-	//recognize non-32-bit negative numbers
-	//and convert them to 32-bit negative numbers using 2's complement
-	if (temp & ((uint32_t)1 << 23))
-	{
-		temp -= (uint32_t)1 << 24;
-	}
-
-	//return temperature
-	*result = calcTemp(temp);
-	return DPS__SUCCEEDED;
-}
-
 int16_t Dps310::setOpMode(uint8_t opMode)
 {
-	//Filter invalid OpModes
-	if (opMode == INVAL_OP_CMD_BOTH || opMode == INVAL_OP_CONT_NONE)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-
 	if (writeByteBitfield(opMode, registers[OPMODE]) == -1)
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
-	m_opMode = (Dps310::Mode)opMode;
+	m_opMode = (DpsClass::Mode)opMode;
 	return DPS__SUCCEEDED;
 }
 
@@ -568,50 +406,17 @@ int16_t Dps310::configPressure(uint8_t prsMr, uint8_t prsOsr)
 	return ret;
 }
 
-int16_t Dps310::getPressure(int32_t *result)
+int16_t Dps310::enableFIFO()
 {
-	uint8_t buffer[3] = {0};
-	//read raw pressure data to buffer
-	int16_t i = readBlock(registerBlocks[PRS],
-						  buffer);
-
-	//compose raw pressure value from buffer
-	int32_t prs = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
-	//recognize non-32-bit negative numbers
-	//and convert them to 32-bit negative numbers using 2's complement
-	if (prs & ((uint32_t)1 << 23))
-	{
-		prs -= (uint32_t)1 << 24;
-	}
-
-	*result = calcPressure(prs);
-	return DPS__SUCCEEDED;
+	return writeByteBitfield(1U, registers[FIFO_EN]);
 }
 
-int16_t Dps310::readBlock(RegBlock_t regBlock, uint8_t *buffer)
+int16_t Dps310::disableFIFO()
 {
-	// TODO: add length check
-
-	//delegate to specialized function if Dps310 is connected via SPI
-	if (m_SpiI2c == 0)
+	int16_t ret = writeByteBitfield(1U, registers[FIFO_FL]);
+	if (ret < 0)
 	{
-		return readBlockSPI(regBlock, buffer);
+		return ret;
 	}
-	//do not read if there is no buffer
-	if (buffer == NULL)
-	{
-		return 0; //0 bytes read successfully
-	}
-
-	m_i2cbus->beginTransmission(m_slaveAddress);
-	m_i2cbus->write(regBlock.regAddress);
-	m_i2cbus->endTransmission(0);
-	//request length bytes from slave
-	int16_t ret = m_i2cbus->requestFrom(m_slaveAddress, regBlock.length, 1U);
-	//read all received bytes to buffer
-	for (int16_t count = 0; count < ret; count++)
-	{
-		buffer[count] = m_i2cbus->read();
-	}
-	return ret;
+	return writeByteBitfield(0U, registers[FIFO_EN]);
 }

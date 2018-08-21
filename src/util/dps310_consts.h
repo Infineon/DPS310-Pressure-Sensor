@@ -12,6 +12,7 @@
 #define DPS310__SPI_RW_MASK 				0x80U
 #define DPS310__SPI_MAX_FREQ 				100000U
 
+// standard values
 #define DPS310__TEMP_STD_MR					2U
 #define DPS310__TEMP_STD_OSR				3U
 #define DPS310__PRS_STD_MR					2U
@@ -24,7 +25,8 @@
 // you can set it to 0 if you dare, but there is no warranty that it will still work
 #define DPS310__BUSYTIME_FAILSAFE			10U
 #define DPS310__MAX_BUSYTIME 				((1000U-DPS310__BUSYTIME_FAILSAFE)*DPS310__BUSYTIME_SCALING)
-#define DPS310__NUM_OF_SCAL_FACTS			8
+
+#define DPS__NUM_OF_SCAL_FACTS				8
 
 #define DPS__SUCCEEDED						0
 #define DPS__FAIL_UNKNOWN 					-1

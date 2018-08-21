@@ -1,6 +1,6 @@
-#include "Dps310.h"
+#include "DpsClass.h"
 
-const int32_t DpsClass::scaling_facts[DPS310__NUM_OF_SCAL_FACTS] = {524288, 1572864, 3670016, 7864320, 253952, 516096, 1040384, 2088960};
+const int32_t DpsClass::scaling_facts[DPS__NUM_OF_SCAL_FACTS] = {524288, 1572864, 3670016, 7864320, 253952, 516096, 1040384, 2088960};
 
 //////// 		Constructor, Destructor, begin, end			////////
 
@@ -228,6 +228,131 @@ int16_t DpsClass::correctTemp(void)
 	measureTempOnce(trash);
 
 	return DPS__SUCCEEDED;
+}
+
+int16_t DpsClass::startMeasureTempCont(uint8_t measureRate, uint8_t oversamplingRate)
+{
+	//abort if initialization failed
+	if (m_initFail)
+	{
+		return DPS__FAIL_INIT_FAILED;
+	}
+	//abort if device is not in idling mode
+	if (m_opMode != IDLE)
+	{
+		return DPS__FAIL_TOOBUSY;
+	}
+	//abort if speed and precision are too high
+	if (calcBusyTime(measureRate, oversamplingRate) >= DPS310__MAX_BUSYTIME)
+	{
+		return DPS__FAIL_UNFINISHED;
+	}
+	//update precision and measuring rate
+	if (configTemp(measureRate, oversamplingRate))
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+
+	if (enableFIFO()){
+		return DPS__FAIL_UNKNOWN;
+	}
+	//Start measuring in background mode
+	if (DpsClass::setOpMode(1U, 1U, 0U))
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+	return DPS__SUCCEEDED;
+}
+
+int16_t DpsClass::startMeasurePressureCont(uint8_t measureRate, uint8_t oversamplingRate)
+{
+	//abort if initialization failed
+	if (m_initFail)
+	{
+		return DPS__FAIL_INIT_FAILED;
+	}
+	//abort if device is not in idling mode
+	if (m_opMode != IDLE)
+	{
+		return DPS__FAIL_TOOBUSY;
+	}
+	//abort if speed and precision are too high
+	if (calcBusyTime(measureRate, oversamplingRate) >= DPS310__MAX_BUSYTIME)
+	{
+		return DPS__FAIL_UNFINISHED;
+	}
+	//update precision and measuring rate
+	if (configPressure(measureRate, oversamplingRate))
+		return DPS__FAIL_UNKNOWN;
+	//enable result FIFO
+	if (enableFIFO())
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+	//Start measuring in background mode
+	if (DpsClass::setOpMode(1U, 0U, 1U))
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+	return DPS__SUCCEEDED;
+}
+
+int16_t DpsClass::startMeasureBothCont(uint8_t tempMr,
+									 uint8_t tempOsr,
+									 uint8_t prsMr,
+									 uint8_t prsOsr)
+{
+	//abort if initialization failed
+	if (m_initFail)
+	{
+		return DPS__FAIL_INIT_FAILED;
+	}
+	//abort if device is not in idling mode
+	if (m_opMode != IDLE)
+	{
+		return DPS__FAIL_TOOBUSY;
+	}
+	//abort if speed and precision are too high
+	if (calcBusyTime(tempMr, tempOsr) + calcBusyTime(prsMr, prsOsr) >= DPS310__MAX_BUSYTIME)
+	{
+		return DPS__FAIL_UNFINISHED;
+	}
+	//update precision and measuring rate
+	if (configTemp(tempMr, tempOsr))
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+	//update precision and measuring rate
+	if (configPressure(prsMr, prsOsr))
+		return DPS__FAIL_UNKNOWN;
+	//enable result FIFO
+	if (enableFIFO())
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+	//Start measuring in background mode
+	if (DpsClass::setOpMode(1U, 1U, 1U))
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+	return DPS__SUCCEEDED;
+}
+
+int16_t DpsClass::standby(void)
+{
+	//abort if initialization failed
+	if (m_initFail)
+	{
+		return DPS__FAIL_INIT_FAILED;
+	}
+	//set device to idling mode
+	int16_t ret = setOpMode(IDLE);
+	if (ret != DPS__SUCCEEDED)
+	{
+		return ret;
+	}
+	ret = disableFIFO();
+	return ret;
 }
 
 //////// 	Declaration of private functions starts here	////////
@@ -470,4 +595,72 @@ int16_t DpsClass::readByteBitfield(RegMask_t regMask)
 		return ret;
 	}
 	return (((uint8_t)ret) & regMask.mask) >> regMask.shift;
+}
+
+int16_t DpsClass::readBlock(RegBlock_t regBlock, uint8_t *buffer)
+{
+	// TODO: add length check
+
+	//delegate to specialized function if Dps310 is connected via SPI
+	if (m_SpiI2c == 0)
+	{
+		return readBlockSPI(regBlock, buffer);
+	}
+	//do not read if there is no buffer
+	if (buffer == NULL)
+	{
+		return 0; //0 bytes read successfully
+	}
+
+	m_i2cbus->beginTransmission(m_slaveAddress);
+	m_i2cbus->write(regBlock.regAddress);
+	m_i2cbus->endTransmission(0);
+	//request length bytes from slave
+	int16_t ret = m_i2cbus->requestFrom(m_slaveAddress, regBlock.length, 1U);
+	//read all received bytes to buffer
+	for (int16_t count = 0; count < ret; count++)
+	{
+		buffer[count] = m_i2cbus->read();
+		// Serial.println(buffer[count]);
+	}
+	return ret;
+}
+
+int16_t DpsClass::getTemp(int32_t *result, RegBlock_t reg)
+{
+	uint8_t buffer[3] = {0};
+	int16_t i = readBlock(reg, buffer);
+
+	//compose raw temperature value from buffer
+	int32_t temp = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
+	//recognize non-32-bit negative numbers
+	//and convert them to 32-bit negative numbers using 2's complement
+	if (temp & ((uint32_t)1 << 23))
+	{
+		temp -= (uint32_t)1 << 24;
+	}
+
+	//return temperature
+	*result = calcTemp(temp);
+	Serial.println(temp);
+	return DPS__SUCCEEDED;
+}
+
+int16_t DpsClass::getPressure(int32_t *result, RegBlock_t reg)
+{
+	uint8_t buffer[3] = {0};
+	int16_t i = readBlock(reg, buffer);
+
+	//compose raw pressure value from buffer
+	int32_t prs = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
+	Serial.println(prs);
+	//recognize non-32-bit negative numbers
+	//and convert them to 32-bit negative numbers using 2's complement
+	if (prs & ((uint32_t)1 << 23))
+	{
+		prs -= (uint32_t)1 << 24;
+	}
+
+	*result = calcPressure(prs);
+	return DPS__SUCCEEDED;
 }

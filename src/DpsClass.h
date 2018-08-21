@@ -18,6 +18,7 @@
 #include <Wire.h>
 #include "util/dps310_consts.h"
 #include "util/DpsRegister.h"
+#define DPS_NUM_OF_REGBLOCKS 3
 
 class DpsClass
 {
@@ -73,7 +74,7 @@ class DpsClass
 	 * 				-2 if object initialization failed
 	 * 				-1 on other fail
 	 */
-	virtual int16_t standby(void) = 0;
+	int16_t standby(void);
 
 	/**
 	 * performs one temperature measurement and writes result to the given address
@@ -217,7 +218,7 @@ class DpsClass
 	 * 						at the same time.
 	 * 						Consult the datasheet for more information.
 	 */
-	virtual int16_t startMeasureTempCont(uint8_t measureRate, uint8_t oversamplingRate) = 0;
+	int16_t startMeasureTempCont(uint8_t measureRate, uint8_t oversamplingRate);
 
 	/**
 	 * starts a continuous temperature measurement
@@ -244,7 +245,7 @@ class DpsClass
 	 * 						at the same time.
 	 * 						Consult the datasheet for more information.
 	 */
-	virtual int16_t startMeasurePressureCont(uint8_t measureRate, uint8_t oversamplingRate) = 0;
+	int16_t startMeasurePressureCont(uint8_t measureRate, uint8_t oversamplingRate);
 
 	/**
 	 * starts a continuous temperature and pressure measurement
@@ -267,7 +268,7 @@ class DpsClass
 	 * 						This sum must not be more than 1 second.
 	 * 						Consult the datasheet for more information.
 	 */
-	virtual int16_t startMeasureBothCont(uint8_t tempMr, uint8_t tempOsr, uint8_t prsMr, uint8_t prsOsr) = 0;
+	int16_t startMeasureBothCont(uint8_t tempMr, uint8_t tempOsr, uint8_t prsMr, uint8_t prsOsr);
 
 	/**
 	 * Gets the results from continuous measurements and writes them to given arrays
@@ -354,17 +355,32 @@ class DpsClass
 	int16_t correctTemp(void);
 
   protected:
+	enum RegisterBlocks_e
+	{
+		PRS = 0,  // pressure value
+		TEMP, // temperature value
+		COEF, // compensation coefficients
+	};
+	enum CommonRegisters_e
+	{
+		FIFO_EN = 0,	//FIFO enable
+		FIFO_FL,	//FIFO flush
+		FIFO_EMPTY, //FIFO empty
+		FIFO_FULL,  //FIFO full
+	};
+
+	RegMask_t commonRegisters[4];
+	RegBlock_t registerBlocks[DPS_NUM_OF_REGBLOCKS];
+
 	//scaling factor table
-	//for initialization see ifx_dps310.cpp
-	static const int32_t scaling_facts[DPS310__NUM_OF_SCAL_FACTS];
+	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
 	//enum for operating mode
 	enum Mode
 	{
 		IDLE = 0x00,
 		CMD_PRS = 0x01,
 		CMD_TEMP = 0x02,
-		INVAL_OP_CMD_BOTH = 0x03,  //invalid
-		INVAL_OP_CONT_NONE = 0x04, //invalid
+		CMD_BOTH = 0x03, // only for DPS422
 		CONT_PRS = 0x05,
 		CONT_TMP = 0x06,
 		CONT_BOTH = 0x07
@@ -474,6 +490,11 @@ class DpsClass
 	 * returns: 	0 normally or -1 on fail
 	 */
 	virtual int16_t configPressure(uint8_t prs_mr, uint8_t prs_osr) = 0;
+
+	// helper functions to reduce code reuse between classes
+	virtual int16_t enableFIFO() = 0;
+	virtual int16_t disableFIFO() = 0;
+
 	/**
 	 * calculates the time that the DPS310 needs for 2^mr measurements
 	 * with an oversampling rate of 2^osr
@@ -495,7 +516,7 @@ class DpsClass
 	 * returns:	0 on success
 	 * 			-1 on fail;
 	 */
-	virtual int16_t getTemp(int32_t *result) = 0;
+	int16_t getTemp(int32_t *result, RegBlock_t reg);
 	/**
 	 * Gets the next pressure measurement result in Pa
 	 *
@@ -503,7 +524,7 @@ class DpsClass
 	 * returns: 0 on success
 	 * 			-1 on fail;
 	 */
-	virtual int16_t getPressure(int32_t *result) = 0;
+	int16_t getPressure(int32_t *result, RegBlock_t reg);
 	/**
 	 * reads the next raw value from the Dps310 FIFO
 	 *
@@ -525,7 +546,6 @@ class DpsClass
 	 * returns: pressure value in Pa
 	 */
 	int32_t calcPressure(int32_t raw);
-
 	/**
 	 * reads a byte from dps310
 	 *
@@ -552,7 +572,7 @@ class DpsClass
 	 * 				NOTE! This is not always equal to length
 	 * 					  due to rx-Buffer overflow etc.
 	 */
-	virtual int16_t readBlock(RegBlock_t regBlock, uint8_t *buffer) = 0;
+	int16_t readBlock(RegBlock_t regBlock, uint8_t *buffer);
 	/**
 	 * reads a block from dps310 via SPI
 	 *
@@ -624,7 +644,6 @@ class DpsClass
 	 * 				or -1 on fail
 	 */
 	int16_t writeByteBitfield(uint8_t data, uint8_t regAddress, uint8_t mask, uint8_t shift, uint8_t check);
-
 	/**
 	 * reads some given bits of a given register of dps310
 	 *
@@ -639,4 +658,4 @@ class DpsClass
 	int16_t readByteBitfield(RegMask_t regMask);
 };
 
-#endif //DPS310_ARDUINO_H_INCLUDED
+#endif //DPSCLASS_H_INCLUDED

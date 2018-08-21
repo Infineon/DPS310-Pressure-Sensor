@@ -3,10 +3,50 @@
 
 #include "DpsClass.h"
 
+#define DPS310_NUM_OF_REGMASKS 24
+
 class Dps310 : public DpsClass
 {
   public:
-    RegMask_t registers[MAX_NUM_OF_REGMASKS] = {
+    Dps310::Dps310();
+    int16_t getSingleResult(int32_t &result);
+    int16_t getContResults(int32_t *tempBuffer, uint8_t &tempCount, int32_t *prsBuffer, uint8_t &prsCount);
+    int16_t setInterruptPolarity(uint8_t polarity);
+    int16_t setInterruptSources(bool fifoFull, bool tempReady, bool prsReady);
+    int16_t getIntStatusFifoFull(void);
+    int16_t getIntStatusTempReady(void);
+    int16_t getIntStatusPrsReady(void);
+
+  protected:
+    enum Registers_e
+    {
+        PROD_ID = 0,
+        REV_ID,
+        OPMODE,
+        TEMP_MR,        // temperature measure rate
+        TEMP_OSR,       // temperature oversampling rate
+        TEMP_SENSOR,    // internal vs external
+        TEMP_SENSORREC, //temperature sensor recommendation
+        TEMP_SE,        //temperature shift enable (if temp_osr>3)
+        PRS_MR,         //pressure measure rate
+        PRS_OSR,        //pressure oversampling rate
+        PRS_SE,         //pressure shift enable (if prs_osr>3)
+        TEMP_RDY,       //temperature ready flag
+        PRS_RDY,        //pressure ready flag
+        FIFO_EN,        //FIFO enable
+        FIFO_FL,        //FIFO flush
+        FIFO_EMPTY,     //FIFO empty
+        FIFO_FULL,      //FIFO full
+        INT_HL,
+        INT_EN_FIFO, //INT FIFO enable
+        INT_EN_TEMP,
+        INT_EN_PRS,
+        INT_FLAG_FIFO,
+        INT_FLAG_TEMP,
+        INT_FLAG_PRS
+    };
+
+    RegMask_t registers[DPS310_NUM_OF_REGMASKS] = {
         {0x0D, 0x0F, 0}, // PROD_ID
         {0x0D, 0xF0, 4}, // REV_ID
         {0x08, 0x07, 0}, // OPMODE
@@ -33,34 +73,15 @@ class Dps310 : public DpsClass
         {0x0A, 0x01, 0}, // INT_FLAG_PRS
     };
 
-    RegBlock_t registerBlocks[MAX_NUM_OF_REGBLOCKS] = {
-        {0x00, 3},
-        {0x03, 3},
-        {0x10, 18},
-    };
-
-    int16_t standby(void);
-    int16_t getSingleResult(int32_t &result);
-    int16_t startMeasureTempCont(uint8_t measureRate, uint8_t oversamplingRate);
-    int16_t startMeasurePressureCont(uint8_t measureRate, uint8_t oversamplingRate);
-    int16_t startMeasureBothCont(uint8_t tempMr, uint8_t tempOsr, uint8_t prsMr, uint8_t prsOsr);
-    int16_t getContResults(int32_t *tempBuffer, uint8_t &tempCount, int32_t *prsBuffer, uint8_t &prsCount);
-    int16_t setInterruptPolarity(uint8_t polarity);
-    int16_t setInterruptSources(bool fifoFull, bool tempReady, bool prsReady);
-    int16_t getIntStatusFifoFull(void);
-    int16_t getIntStatusTempReady(void);
-    int16_t getIntStatusPrsReady(void);
-
-  protected:
     void init(void);
     int16_t configTemp(uint8_t temp_mr, uint8_t temp_osr);
     int16_t configPressure(uint8_t prs_mr, uint8_t prs_osr);
-    int16_t readBlock(RegBlock_t regBlock, uint8_t *buffer);
     int16_t readcoeffs(void);
     int16_t setOpMode(uint8_t opMode);
-    int16_t getTemp(int32_t *result);
-    int16_t getPressure(int32_t *result);
     int16_t getFIFOvalue(int32_t *value);
+    
+    int16_t enableFIFO();
+    int16_t disableFIFO();
 };
 
 #endif
