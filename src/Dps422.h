@@ -24,6 +24,7 @@ class Dps422 : public DpsClass
     int16_t getIntStatusFifoFull(void);
     int16_t getIntStatusTempReady(void);
     int16_t getIntStatusPrsReady(void);
+    int16_t measureBothOnce(float &prs, float &temp); // might make sense to declare in base class for future sensors
 
   protected:
     //compensation coefficients (for simplicity use 32 bits)
@@ -31,6 +32,8 @@ class Dps422 : public DpsClass
     float b_prime;
     int32_t m_c02;
     int32_t m_c12;
+
+    int32_t last_raw_temp = 0; // for pressure compensation
 
     enum Registers_e
     {
@@ -122,6 +125,7 @@ class Dps422 : public DpsClass
     int16_t enableFIFO();
     int16_t disableFIFO();
     float calcTemp(int32_t raw);
+    // TODO: use a plausible default temp val
     float calcPressure(int32_t raw, int32_t raw_temp = 0);
 };
 

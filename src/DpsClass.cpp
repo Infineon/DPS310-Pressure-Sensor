@@ -8,8 +8,6 @@ DpsClass::DpsClass(void)
 {
 	//assume that initialization has failed before it has been done
 	m_initFail = 1U;
-
-	// dpsRegister = Dps310Register();
 }
 
 DpsClass::~DpsClass(void)
@@ -311,7 +309,7 @@ int16_t DpsClass::startMeasureBothCont(uint8_t tempMr,
 		return DPS__FAIL_UNKNOWN;
 	}
 	//Start measuring in background mode
-	if (DpsClass::setOpMode(CONT_BOTH))
+	if (setOpMode(CONT_BOTH))
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
