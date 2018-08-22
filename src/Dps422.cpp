@@ -1,6 +1,6 @@
 #include "Dps422.h"
 
-int16_t Dps422::getSingleResult(int32_t &result)
+int16_t Dps422::getSingleResult(float &result)
 {
 	int16_t rdy;
 	switch (m_opMode)
@@ -32,10 +32,12 @@ int16_t Dps422::getSingleResult(int32_t &result)
 		{
 		case CMD_TEMP: //temperature
 			getRawResult(&raw_val, registerBlocks[TEMP]);
+			// Serial.println(raw_val);
 			result = calcTemp(raw_val);
 			return DPS__SUCCEEDED; // TODO
-		case CMD_PRS: //pressure
+		case CMD_PRS:			   //pressure
 			getRawResult(&raw_val, registerBlocks[PRS]);
+			// Serial.println(raw_val);
 			result = calcPressure(raw_val);
 			return DPS__SUCCEEDED; // TODO
 		case CMD_BOTH:
@@ -77,6 +79,9 @@ void Dps422::init(void)
 {
 	readcoeffs();
 	standby();
+
+	writeByteBitfield(0x01, registers[MUST_SET]);
+
 	configTemp(DPS310__TEMP_STD_MR, DPS310__TEMP_STD_OSR);
 	configPressure(DPS310__PRS_STD_MR, DPS310__PRS_STD_OSR);
 }
@@ -97,6 +102,7 @@ int16_t Dps422::setOpMode(uint8_t opMode)
 
 int16_t Dps422::configTemp(uint8_t tempMr, uint8_t tempOsr)
 {
+	// TODO: optimize
 	int16_t ret = writeByteBitfield(tempMr, registers[TEMP_MR]);
 	ret = writeByteBitfield(tempOsr, registers[TEMP_OSR]);
 
@@ -111,6 +117,7 @@ int16_t Dps422::configTemp(uint8_t tempMr, uint8_t tempOsr)
 
 int16_t Dps422::configPressure(uint8_t prsMr, uint8_t prsOsr)
 {
+	// TODO: optimize
 	int16_t ret = writeByteBitfield(prsMr, registers[PRS_MR]);
 	ret = writeByteBitfield(prsOsr, registers[PRS_OSR]);
 
@@ -130,9 +137,27 @@ int16_t Dps422::readcoeffs(void)
 	readBlock(registerBlocks[COEF_TEMP], buffer_temp);
 	readBlock(registerBlocks[COEF_PRS], buffer_prs);
 
-	t_gain = buffer_temp[0];								 // 8 bits
-	t_dVbe = (buffer_temp[1] & 0xFE) >> 1;					 // 7 bits
-	t_Vbe = ((buffer_temp[1] & 0x01) << 8) | buffer_temp[2]; // 9 bits
+	// refer to datasheet
+	// 1. read T_Vbe, T_dVbe and T_gain
+	int32_t t_gain = buffer_temp[0];								 // 8 bits
+	int32_t t_dVbe = (buffer_temp[1] & 0xFE) >> 1;					 // 7 bits
+	int32_t t_Vbe = ((buffer_temp[1] & 0x01) << 8) | buffer_temp[2]; // 9 bits
+	// 2. Vbe, dVbe and Aadc
+	float Vbe = t_Vbe * 1.05031e-4 + 0.463232422;
+	float dVbe = t_dVbe * 1.25885e-5 + 0.04027621;
+	float Aadc = t_gain * 8.4375e-5 + 0.675;
+	// 3. Vbe_cal and dVbe_cal
+	float Vbe_cal = Vbe / Aadc;
+	float dVbe_cal = dVbe / Aadc;
+	// 4. T_calib
+	float T_calib = DPS422_A_0 * dVbe_cal - 273.15;
+	// 5. Vbe_cal(T_ref): Vbe value at reference temperature
+	float Vbe_cal_tref = Vbe_cal - (T_calib - DPS422_T_REF) * DPS422_T_C_VBE;
+	// 6. alculate PTAT correction coefficient
+	float k_ptat = (Vbe_cal_tref - DPS422_V_BE_TARGET) * DPS422_K_PTAT_CURVATURE + DPS422_K_PTAT_CORNER;
+	// 7. calculate A' and B'
+	a_prime = DPS422_A_0 * (Vbe_cal + DPS422_ALPHA * dVbe_cal) * (1 + k_ptat);
+	b_prime = -273.15 * (1 + k_ptat) - k_ptat * T_calib;
 
 	// c00, c01, c02, c10 : 20 bits
 	// c11, c12: 17 bits
@@ -172,4 +197,28 @@ int16_t Dps422::disableFIFO()
 		return ret;
 	}
 	return writeByteBitfield(0U, registers[FIFO_EN]);
+}
+
+float Dps422::calcTemp(int32_t raw)
+{
+	// TODO: change return type
+
+	float t_cal = raw;
+	t_cal /= 1048576;
+	float u = t_cal / (1 + DPS422_ALPHA * t_cal);
+	return (a_prime * u + b_prime);
+}
+
+float Dps422::calcPressure(int32_t raw_prs, int32_t raw_temp)
+{
+	// TODO: pressure calculation requires temperature values - what happens if temp reading disabled?
+	float prs = raw_prs;
+	prs /= scaling_facts[m_prsOsr];
+
+	float temp = raw_temp;
+	temp = (8.5 * raw_temp) / (1 + 8.8 * raw_temp);
+
+	prs = m_c00 + m_c10 * prs + m_c01 * temp + m_c20 * prs * prs + m_c02 * temp * temp + m_c30 * prs * prs * prs +
+		  m_c11 * temp * prs + m_c12 * prs * temp * temp + m_c21 * prs * prs * temp;
+	return prs;
 }

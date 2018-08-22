@@ -97,12 +97,12 @@ uint8_t DpsClass::getRevisionId(void)
 	return m_revisionID;
 }
 
-int16_t DpsClass::measureTempOnce(int32_t &result)
+int16_t DpsClass::measureTempOnce(float &result)
 {
 	return measureTempOnce(result, m_tempOsr);
 }
 
-int16_t DpsClass::measureTempOnce(int32_t &result, uint8_t oversamplingRate)
+int16_t DpsClass::measureTempOnce(float &result, uint8_t oversamplingRate)
 {
 	//Start measurement
 	int16_t ret = startMeasureTempOnce(oversamplingRate);
@@ -151,15 +151,15 @@ int16_t DpsClass::startMeasureTempOnce(uint8_t oversamplingRate)
 	}
 
 	//set device to temperature measuring mode
-	return setOpMode(0U, 1U, 0U);
+	return setOpMode(CMD_TEMP);
 }
 
-int16_t DpsClass::measurePressureOnce(int32_t &result)
+int16_t DpsClass::measurePressureOnce(float &result)
 {
 	return measurePressureOnce(result, m_prsOsr);
 }
 
-int16_t DpsClass::measurePressureOnce(int32_t &result, uint8_t oversamplingRate)
+int16_t DpsClass::measurePressureOnce(float &result, uint8_t oversamplingRate)
 {
 	//start the measurement
 	int16_t ret = startMeasurePressureOnce(oversamplingRate);
@@ -206,28 +206,7 @@ int16_t DpsClass::startMeasurePressureOnce(uint8_t oversamplingRate)
 		}
 	}
 	//set device to pressure measuring mode
-	return setOpMode(0U, 0U, 1U);
-}
-
-int16_t DpsClass::correctTemp(void)
-{
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	writeByte(0x0E, 0xA5);
-	writeByte(0x0F, 0x96);
-	writeByte(0x62, 0x02);
-	writeByte(0x0E, 0x00);
-	writeByte(0x0F, 0x00);
-
-	//perform a first temperature measurement (again)
-	//the most recent temperature will be saved internally
-	//and used for compensation when calculating pressure
-	int32_t trash;
-	measureTempOnce(trash);
-
-	return DPS__SUCCEEDED;
+	return setOpMode(CMD_PRS);
 }
 
 int16_t DpsClass::startMeasureTempCont(uint8_t measureRate, uint8_t oversamplingRate)
@@ -258,7 +237,7 @@ int16_t DpsClass::startMeasureTempCont(uint8_t measureRate, uint8_t oversampling
 		return DPS__FAIL_UNKNOWN;
 	}
 	//Start measuring in background mode
-	if (DpsClass::setOpMode(1U, 1U, 0U))
+	if (DpsClass::setOpMode(CONT_TMP))
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
@@ -291,7 +270,7 @@ int16_t DpsClass::startMeasurePressureCont(uint8_t measureRate, uint8_t oversamp
 		return DPS__FAIL_UNKNOWN;
 	}
 	//Start measuring in background mode
-	if (DpsClass::setOpMode(1U, 0U, 1U))
+	if (DpsClass::setOpMode(CONT_PRS))
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
@@ -332,7 +311,7 @@ int16_t DpsClass::startMeasureBothCont(uint8_t tempMr,
 		return DPS__FAIL_UNKNOWN;
 	}
 	//Start measuring in background mode
-	if (DpsClass::setOpMode(1U, 1U, 1U))
+	if (DpsClass::setOpMode(CONT_BOTH))
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
@@ -357,12 +336,6 @@ int16_t DpsClass::standby(void)
 }
 
 //////// 	Declaration of private functions starts here	////////
-
-int16_t DpsClass::setOpMode(bool background, bool temperature, bool pressure)
-{
-	uint8_t opMode = background << 2U | temperature << 1U | pressure;
-	return setOpMode(opMode);
-}
 
 uint16_t DpsClass::calcBusyTime(uint16_t mr, uint16_t osr)
 {

@@ -1,13 +1,23 @@
+/**
+ * @brief 
+ * 
+ * Temperature measurements must be enabled for the DPS422 to compensate for temperature drift in the pressure measurement.
+ * @file Dps422.h
+ * @author Infineon Technologies
+ * @date 2018-08-22
+ */
+
 #ifndef DPS422_H_INCLUDED
 #define DPS422_H_INCLUDED
 #include "DpsClass.h"
+#include "util/dps422_consts.h"
 
 #define DPS422_NUM_OF_REGMASKS 30
 
 class Dps422 : public DpsClass
 {
   public:
-    int16_t getSingleResult(int32_t &result);
+    int16_t getSingleResult(float &result);
     int16_t getContResults(int32_t *tempBuffer, uint8_t &tempCount, int32_t *prsBuffer, uint8_t &prsCount);
     int16_t setInterruptPolarity(uint8_t polarity);
     int16_t setInterruptSources(bool fifoFull, bool tempReady, bool prsReady);
@@ -17,9 +27,8 @@ class Dps422 : public DpsClass
 
   protected:
     //compensation coefficients (for simplicity use 32 bits)
-    int32_t t_gain;
-    int32_t t_dVbe;
-    int32_t t_Vbe;
+    float a_prime;
+    float b_prime;
     int32_t m_c02;
     int32_t m_c12;
 
@@ -54,6 +63,7 @@ class Dps422 : public DpsClass
         REV_ID,
         SPI_MODE, // 4- or 3-wire SPI
         SOFT_RESET,
+        MUST_SET, // bit 7 of TEMP_CFG, according to datasheet should always be set
     };
 
     RegMask_t registers[DPS422_NUM_OF_REGMASKS] = {
@@ -86,6 +96,7 @@ class Dps422 : public DpsClass
         {0x1D, 0xF0, 0}, // REV_ID
         {0x09, 0x01, 0}, // SPI_MODE
         {0x0D, 0x0F, 0}, // SOFT_RESET
+        {0x07, 0x80, 7}, // MUST_SET
     };
     enum RegisterBlocks_e
     {
@@ -110,8 +121,8 @@ class Dps422 : public DpsClass
     int16_t getFIFOvalue(int32_t *value);
     int16_t enableFIFO();
     int16_t disableFIFO();
-    int32_t calcTemp(int32_t raw){};
-    int32_t calcPressure(int32_t raw){};
+    float calcTemp(int32_t raw);
+    float calcPressure(int32_t raw, int32_t raw_temp = 0);
 };
 
 #endif

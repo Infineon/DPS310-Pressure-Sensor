@@ -86,7 +86,7 @@ class DpsClass
 	 * 				-2 if the object initialization failed
 	 * 				-1 on other fail
 	 */
-	int16_t measureTempOnce(int32_t &result);
+	int16_t measureTempOnce(float &result);
 	/**
 	 * performs one temperature measurement and writes result to the given address
 	 * the desired precision can be set with oversamplingRate
@@ -103,7 +103,7 @@ class DpsClass
 	 * 						-2 if the object initialization failed
 	 * 						-1 on other fail
 	 */
-	int16_t measureTempOnce(int32_t &result, uint8_t oversamplingRate);
+	int16_t measureTempOnce(float &result, uint8_t oversamplingRate);
 	/**
 	 * starts a single temperature measurement
 	 *
@@ -138,7 +138,7 @@ class DpsClass
 	 * 				-2 if the object initialization failed
 	 * 				-1 on other fail
 	 */
-	int16_t measurePressureOnce(int32_t &result);
+	int16_t measurePressureOnce(float &result);
 	/**
 	 * performs one pressure measurement and writes result to the given address
 	 * the desired precision can be set with oversamplingRate
@@ -155,7 +155,7 @@ class DpsClass
 	 * 						-2 if the object initialization failed
 	 * 						-1 on other fail
 	 */
-	int16_t measurePressureOnce(int32_t &result, uint8_t oversamplingRate);
+	int16_t measurePressureOnce(float &result, uint8_t oversamplingRate);
 
 	/**
 	 * starts a single pressure measurement
@@ -190,7 +190,7 @@ class DpsClass
 	 * 				-2 if the object initialization failed
 	 * 				-1 on other fail
 	 */
-	virtual int16_t getSingleResult(int32_t &result) = 0;
+	virtual int16_t getSingleResult(float &result) = 0;
 
 	/**
 	 * starts a continuous temperature measurement
@@ -346,13 +346,6 @@ class DpsClass
 	 */
 	virtual int16_t getIntStatusPrsReady(void) = 0;
 
-	/**
-	 * Function to fix a hardware problem on some devices
-	 * You have this problem if you measure a temperature which is too high (e.g. 60°C when temperature is around 20°C)
-	 * Call correctTemp() directly after begin() to fix this issue
-	 */
-	int16_t correctTemp(void);
-
   protected:
 	//scaling factor table
 	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
@@ -416,21 +409,7 @@ class DpsClass
 	 * returns: 	0 on success, -1 on fail
 	 */
 	virtual int16_t readcoeffs(void) = 0;
-	/**
-	 * Sets the Operation Mode of the Dps310
-	 *
-	 * background:		determines the general behavior of the Dps310
-	 *  				0 enables command mode (only measure on commands)
-	 * 					1 enables background mode (continuous work in background)
-	 * temperature: 	set 1 to measure temperature
-	 * pressure: 		set 1 to measure pressure
-	 * return:			0 on success, -1 on fail
-	 *
-	 * NOTE!
-	 * You cannot set background to 1 without setting temperature and pressure
-	 * You cannot set both temperature and pressure when background mode is disabled
-	 */
-	int16_t setOpMode(bool background, bool temperature, bool pressure);
+
 	/**
 	 * Sets the Operation Mode of the Dps310
 	 *
@@ -489,22 +468,7 @@ class DpsClass
 	 * 			can be considered as equal.
 	 */
 	uint16_t calcBusyTime(uint16_t temp_rate, uint16_t temp_osr);
-	/**
-	 * Gets the next temperature measurement result in degrees of Celsius
-	 *
-	 * result: 	address where the result will be written
-	 * returns:	0 on success
-	 * 			-1 on fail;
-	 */
-	// int16_t getTemp(int32_t *result, RegBlock_t reg);
-	/**
-	 * Gets the next pressure measurement result in Pa
-	 *
-	 * result: 	address where the result will be written
-	 * returns: 0 on success
-	 * 			-1 on fail;
-	 */
-	// int16_t getPressure(int32_t *result, RegBlock_t reg);
+
 	/**
 	 * reads the next raw value from the Dps310 FIFO
 	 *
@@ -514,18 +478,6 @@ class DpsClass
 	 * 			1 if result is a pressure raw value
 	 */
 	virtual int16_t getFIFOvalue(int32_t *value) = 0;
-	/**
-	 * Calculates a scaled and compensated pressure value from raw data
-	 * raw: 	raw temperature value read from Dps310
-	 * returns: temperature value in °C
-	 */
-	virtual int32_t calcTemp(int32_t raw) = 0;
-	/**
-	 * Calculates a scaled and compensated pressure value from raw data
-	 * raw: 	raw pressure value read from Dps310
-	 * returns: pressure value in Pa
-	 */
-	virtual int32_t calcPressure(int32_t raw) = 0;
 	/**
 	 * reads a byte from dps310
 	 *

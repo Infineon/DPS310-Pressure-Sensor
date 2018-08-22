@@ -1,6 +1,6 @@
 #include "Dps310.h"
 
-int16_t Dps310::getSingleResult(int32_t &result)
+int16_t Dps310::getSingleResult(float &result)
 {
 	//abort if initialization failed
 	if (m_initFail)
@@ -39,7 +39,7 @@ int16_t Dps310::getSingleResult(int32_t &result)
 			getRawResult(&raw_val, registerBlocks[TEMP]);
 			result = calcTemp(raw_val);
 			return DPS__SUCCEEDED; // TODO
-		case CMD_PRS: //pressure
+		case CMD_PRS:			   //pressure
 			getRawResult(&raw_val, registerBlocks[PRS]);
 			result = calcPressure(raw_val);
 			return DPS__SUCCEEDED; // TODO
@@ -74,14 +74,15 @@ int16_t Dps310::getContResults(int32_t *tempBuffer,
 	//while FIFO is not empty
 	while (readByteBitfield(registers[FIFO_EMPTY]) == 0)
 	{
-		int32_t result;
+		int32_t raw_result;
+		float result;
 		//read next result from FIFO
-		int16_t type = getFIFOvalue(&result);
+		int16_t type = getFIFOvalue(&raw_result);
 		switch (type)
 		{
 		case 0: //temperature
 			//calculate compensated pressure value
-			result = calcTemp(result);
+			result = calcTemp(raw_result);
 			//if buffer exists and is not full
 			//write result to buffer and increase temperature result counter
 			if (tempBuffer != NULL)
@@ -153,6 +154,27 @@ int16_t Dps310::getIntStatusPrsReady(void)
 	return readByteBitfield(registers[INT_FLAG_PRS]);
 }
 
+int16_t Dps310::correctTemp(void)
+{
+	if (m_initFail)
+	{
+		return DPS__FAIL_INIT_FAILED;
+	}
+	writeByte(0x0E, 0xA5);
+	writeByte(0x0F, 0x96);
+	writeByte(0x62, 0x02);
+	writeByte(0x0E, 0x00);
+	writeByte(0x0F, 0x00);
+
+	//perform a first temperature measurement (again)
+	//the most recent temperature will be saved internally
+	//and used for compensation when calculating pressure
+	float trash;
+	measureTempOnce(trash);
+
+	return DPS__SUCCEEDED;
+}
+
 void Dps310::init(void)
 {
 	int16_t prodId = readByteBitfield(registers[PROD_ID]);
@@ -205,7 +227,7 @@ void Dps310::init(void)
 	//perform a first temperature measurement
 	//the most recent temperature will be saved internally
 	//and used for compensation when calculating pressure
-	int32_t trash;
+	float trash;
 	measureTempOnce(trash);
 
 	//make sure the DPS310 is in standby after initialization
@@ -354,9 +376,9 @@ int16_t Dps310::configPressure(uint8_t prsMr, uint8_t prsOsr)
 	return ret;
 }
 
-int32_t Dps310::calcTemp(int32_t raw)
+float Dps310::calcTemp(int32_t raw)
 {
-	double temp = raw;
+	float temp = raw;
 
 	//scale temperature according to scaling table and oversampling
 	temp /= scaling_facts[m_tempOsr];
@@ -369,12 +391,12 @@ int32_t Dps310::calcTemp(int32_t raw)
 	temp = m_c0Half + m_c1 * temp;
 
 	//return temperature
-	return (int32_t)temp;
+	return temp;
 }
 
-int32_t Dps310::calcPressure(int32_t raw)
+float Dps310::calcPressure(int32_t raw)
 {
-	double prs = raw;
+	float prs = raw;
 
 	//scale pressure according to scaling table and oversampling
 	prs /= scaling_facts[m_prsOsr];
@@ -383,7 +405,7 @@ int32_t Dps310::calcPressure(int32_t raw)
 	prs = m_c00 + prs * (m_c10 + prs * (m_c20 + prs * m_c30)) + m_lastTempScal * (m_c01 + prs * (m_c11 + prs * m_c21));
 
 	//return pressure
-	return (int32_t)prs;
+	return prs;
 }
 
 int16_t Dps310::enableFIFO()
