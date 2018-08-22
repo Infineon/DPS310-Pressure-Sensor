@@ -50,9 +50,9 @@ int16_t Dps310::getSingleResult(float &result)
 	return DPS__FAIL_UNKNOWN;
 }
 
-int16_t Dps310::getContResults(int32_t *tempBuffer,
+int16_t Dps310::getContResults(float *tempBuffer,
 							   uint8_t &tempCount,
-							   int32_t *prsBuffer,
+							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
 	if (m_initFail)
@@ -95,7 +95,7 @@ int16_t Dps310::getContResults(int32_t *tempBuffer,
 			break;
 		case 1: //pressure
 			//calculate compensated pressure value
-			result = calcPressure(result);
+			result = calcPressure(raw_result);
 			//if buffer exists and is not full
 			//write result to buffer and increase pressure result counter
 			if (prsBuffer != NULL)

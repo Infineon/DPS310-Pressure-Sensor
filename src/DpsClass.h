@@ -291,7 +291,7 @@ class DpsClass
 	 * 					-2 if the object initialization failed
 	 * 					-1 on other fail
 	 */
-	virtual int16_t getContResults(int32_t *tempBuffer, uint8_t &tempCount, int32_t *prsBuffer, uint8_t &prsCount) = 0;
+	virtual int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount) = 0;
 
 	/**
 	 * Sets the active state of the Interrupt pin

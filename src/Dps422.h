@@ -18,7 +18,7 @@ class Dps422 : public DpsClass
 {
   public:
     int16_t getSingleResult(float &result);
-    int16_t getContResults(int32_t *tempBuffer, uint8_t &tempCount, int32_t *prsBuffer, uint8_t &prsCount);
+    int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount);
     int16_t setInterruptPolarity(uint8_t polarity);
     int16_t setInterruptSources(bool fifoFull, bool tempReady, bool prsReady);
     int16_t getIntStatusFifoFull(void);

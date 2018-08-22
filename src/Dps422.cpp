@@ -68,9 +68,9 @@ int16_t Dps422::getSingleResult(float &result)
 	return DPS__FAIL_UNKNOWN;
 }
 
-int16_t Dps422::getContResults(int32_t *tempBuffer,
+int16_t Dps422::getContResults(float *tempBuffer,
 							   uint8_t &tempCount,
-							   int32_t *prsBuffer,
+							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
 }
