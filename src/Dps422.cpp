@@ -27,12 +27,17 @@ int16_t Dps422::getSingleResult(int32_t &result)
 	case 1: //measurement ready, expected case
 		DpsClass::Mode oldMode = m_opMode;
 		m_opMode = IDLE; //opcode was automatically reseted by DPS310
+		int32_t raw_val;
 		switch (oldMode)
 		{
-		case CMD_TEMP:										  //temperature
-			return getTemp(&result, registerBlocks[TEMP]);	//get and calculate the temperature value
-		case CMD_PRS:										  //pressure
-			return getPressure(&result, registerBlocks[PRS]); //get and calculate the pressure value
+		case CMD_TEMP: //temperature
+			getRawResult(&raw_val, registerBlocks[TEMP]);
+			result = calcTemp(raw_val);
+			return DPS__SUCCEEDED; // TODO
+		case CMD_PRS: //pressure
+			getRawResult(&raw_val, registerBlocks[PRS]);
+			result = calcPressure(raw_val);
+			return DPS__SUCCEEDED; // TODO
 		case CMD_BOTH:
 			return 0; // TODO
 		default:

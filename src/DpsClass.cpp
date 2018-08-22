@@ -253,7 +253,8 @@ int16_t DpsClass::startMeasureTempCont(uint8_t measureRate, uint8_t oversampling
 		return DPS__FAIL_UNKNOWN;
 	}
 
-	if (enableFIFO()){
+	if (enableFIFO())
+	{
 		return DPS__FAIL_UNKNOWN;
 	}
 	//Start measuring in background mode
@@ -298,9 +299,9 @@ int16_t DpsClass::startMeasurePressureCont(uint8_t measureRate, uint8_t oversamp
 }
 
 int16_t DpsClass::startMeasureBothCont(uint8_t tempMr,
-									 uint8_t tempOsr,
-									 uint8_t prsMr,
-									 uint8_t prsOsr)
+									   uint8_t tempOsr,
+									   uint8_t prsMr,
+									   uint8_t prsOsr)
 {
 	//abort if initialization failed
 	if (m_initFail)
@@ -593,49 +594,29 @@ int16_t DpsClass::readBlock(RegBlock_t regBlock, uint8_t *buffer)
 	return ret;
 }
 
-int16_t DpsClass::getTemp(int32_t *result, RegBlock_t reg)
-{
-	uint8_t buffer[3] = {0};
-	int16_t i = readBlock(reg, buffer);
-
-	//compose raw temperature value from buffer
-	int32_t temp = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
-	//recognize non-32-bit negative numbers
-	//and convert them to 32-bit negative numbers using 2's complement
-	if (temp & ((uint32_t)1 << 23))
-	{
-		temp -= (uint32_t)1 << 24;
-	}
-
-	//return temperature
-	*result = calcTemp(temp);
-	// Serial.println(temp);
-	return DPS__SUCCEEDED;
-}
-
-int16_t DpsClass::getPressure(int32_t *result, RegBlock_t reg)
-{
-	uint8_t buffer[3] = {0};
-	int16_t i = readBlock(reg, buffer);
-
-	//compose raw pressure value from buffer
-	int32_t prs = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
-	// Serial.println(prs);
-	//recognize non-32-bit negative numbers
-	//and convert them to 32-bit negative numbers using 2's complement
-	if (prs & ((uint32_t)1 << 23))
-	{
-		prs -= (uint32_t)1 << 24;
-	}
-
-	*result = calcPressure(prs);
-	return DPS__SUCCEEDED;
-}
-
 void DpsClass::getTwosComplement(int32_t *raw, uint8_t length)
 {
-	if (*raw & ((uint32_t)1 << (length-1)))
+	if (*raw & ((uint32_t)1 << (length - 1)))
 	{
 		*raw -= (uint32_t)1 << length;
 	}
+}
+
+void DpsClass::getRawResult(int32_t *raw, RegBlock_t reg)
+{
+	uint8_t buffer[3] = {0};
+	int16_t i = readBlock(reg, buffer);
+	*raw = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
+
+	getTwosComplement(raw, 24);
+}
+
+void DpsClass::getRawResult(int32_t *raw, RegBlock_t reg, bool *isPrs)
+{
+	uint8_t buffer[3] = {0};
+	int16_t i = readBlock(reg, buffer);
+	*raw = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
+
+	getTwosComplement(raw, 24);
+	*isPrs = buffer[2] & 0x01;
 }

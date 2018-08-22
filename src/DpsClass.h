@@ -354,7 +354,6 @@ class DpsClass
 	int16_t correctTemp(void);
 
   protected:
-
 	//scaling factor table
 	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
 	//enum for operating mode
@@ -497,7 +496,7 @@ class DpsClass
 	 * returns:	0 on success
 	 * 			-1 on fail;
 	 */
-	int16_t getTemp(int32_t *result, RegBlock_t reg);
+	// int16_t getTemp(int32_t *result, RegBlock_t reg);
 	/**
 	 * Gets the next pressure measurement result in Pa
 	 *
@@ -505,7 +504,7 @@ class DpsClass
 	 * returns: 0 on success
 	 * 			-1 on fail;
 	 */
-	int16_t getPressure(int32_t *result, RegBlock_t reg);
+	// int16_t getPressure(int32_t *result, RegBlock_t reg);
 	/**
 	 * reads the next raw value from the Dps310 FIFO
 	 *
@@ -637,10 +636,21 @@ class DpsClass
 	 * 				or -1 on fail
 	 */
 	int16_t readByteBitfield(RegMask_t regMask);
-	
+
 	//this construction recognizes non-32-bit negative numbers
 	//and converts them to 32-bit negative numbers with 2's complement
 	void getTwosComplement(int32_t *raw, uint8_t length);
+
+	void getRawResult(int32_t *raw, RegBlock_t reg);
+
+	/**
+	 * @brief Get the Raw Result object
+	 * 
+	 * @param raw 
+	 * @param reg 
+	 * @param isPrs 1 if the result is a pressure measurement, 0 is it is a temperature measurement. For DPS310 & DPS422
+	 */
+	void getRawResult(int32_t *raw, RegBlock_t reg, bool *isPrs);
 };
 
 #endif //DPSCLASS_H_INCLUDED
