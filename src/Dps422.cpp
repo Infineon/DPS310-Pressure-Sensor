@@ -1,5 +1,7 @@
 #include "Dps422.h"
 
+////////   public  /////////
+
 int16_t Dps422::measureBothOnce(float &prs, float &temp)
 {
 	setOpMode(CMD_BOTH);
@@ -146,6 +148,7 @@ int16_t Dps422::getIntStatusPrsReady(void)
 {
 }
 
+////////   private  /////////
 void Dps422::init(void)
 {
 	readcoeffs();

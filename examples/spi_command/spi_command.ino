@@ -1,7 +1,7 @@
 #include <Dps310.h>
 
 // Dps310 Opject
-Dps310 Dps310PressureSensor = Dps310();
+Dps310 DigitalPressureSensor = Dps310();
 
 void setup()
 {
@@ -12,9 +12,9 @@ void setup()
   while (!Serial);
 
 
-  //Call begin to initialize Dps310PressureSensor
+  //Call begin to initialize DigitalPressureSensor
   //The parameter pin_nr is the number of the CS pin on your Microcontroller
-  Dps310PressureSensor.begin(SPI, pin_cs);
+  DigitalPressureSensor.begin(SPI, pin_cs);
 
   Serial.println("Init complete!");
 }
@@ -31,12 +31,12 @@ void loop()
 
   //lets the Dps310 perform a Single temperature measurement with the last (or standard) configuration
   //The result will be written to the paramerter temperature
-  //ret = Dps310PressureSensor.measureTempOnce(temperature);
+  //ret = DigitalPressureSensor.measureTempOnce(temperature);
   //the commented line below does exactly the same as the one above, but you can also config the precision
   //oversampling can be a value from 0 to 7
   //the Dps 310 will perform 2^oversampling internal temperature measurements and combine them to one result with higher precision
   //measurements with higher precision take more time, consult datasheet for more information
-  ret = Dps310PressureSensor.measureTempOnce(temperature, oversampling);
+  ret = DigitalPressureSensor.measureTempOnce(temperature, oversampling);
 
   if (ret != 0)
   {
@@ -53,8 +53,8 @@ void loop()
   }
 
 
-  //ret = Dps310PressureSensor.measurePressureOnce(pressure);
-  ret = Dps310PressureSensor.measurePressureOnce(pressure, oversampling);
+  //ret = DigitalPressureSensor.measurePressureOnce(pressure);
+  ret = DigitalPressureSensor.measurePressureOnce(pressure, oversampling);
   if (ret != 0)
   {
     //Something went wrong.
