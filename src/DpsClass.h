@@ -456,7 +456,7 @@ class DpsClass
 
 	/**
 	 * calculates the time that the DPS310 needs for 2^mr measurements
-	 * with an oversampling rate of 2^osr
+	 * with an oversampling rate of 2^osr (see table "pressure measurement time (ms) versus oversampling rate")
 	 *
 	 * mr: 		Measure rate for temperature or pressure
 	 * osr: 	Oversampling rate for temperature or pressure
@@ -477,7 +477,7 @@ class DpsClass
 	 * 			0 if result is a temperature raw value
 	 * 			1 if result is a pressure raw value
 	 */
-	virtual int16_t getFIFOvalue(int32_t *value) = 0;
+	int16_t getFIFOvalue(int32_t *value, RegBlock_t reg);
 	/**
 	 * reads a byte from dps310
 	 *

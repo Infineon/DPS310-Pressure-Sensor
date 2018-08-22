@@ -3,7 +3,7 @@
 int16_t Dps422::measureBothOnce(float &prs, float &temp)
 {
 	setOpMode(CMD_BOTH);
-	delay(10); // change
+	delay((calcBusyTime(0U, m_tempOsr) + (calcBusyTime(0U, m_prsOsr)) / DPS__BUSYTIME_SCALING));
 	int16_t rdy = readByteBitfield(registers[PRS_RDY]) & readByteBitfield(registers[TEMP_RDY]);
 	switch (rdy)
 	{
@@ -73,6 +73,57 @@ int16_t Dps422::getContResults(float *tempBuffer,
 							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
+	// code duplication
+	if (m_initFail)
+	{
+		return DPS__FAIL_INIT_FAILED;
+	}
+	//abort if device is not in background mode
+	if (!(m_opMode & 0x04))
+	{
+		return DPS__FAIL_TOOBUSY;
+	}
+
+	if (!tempBuffer || !prsBuffer)
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+
+	// change
+	uint8_t tempLen = tempCount;
+	uint8_t prsLen = prsCount;
+	tempCount = 0U;
+	prsCount = 0U;
+
+	//while FIFO is not empty
+	while (readByteBitfield(registers[FIFO_EMPTY]) == 0)
+	{
+		int32_t raw_result;
+		float result;
+		//read next result from FIFO
+		int16_t type = getFIFOvalue(&raw_result, registerBlocks[PRS]);
+		switch (type)
+		{
+		case 0: //temperature
+			if (tempCount < tempLen)
+			{
+				result = calcTemp(raw_result);
+				tempBuffer[tempCount++] = result;
+				last_raw_temp = result;
+			}
+			break;
+		case 1: //pressure
+			if (prsCount < prsLen)
+			{
+				result = calcPressure(raw_result, last_raw_temp);
+				prsBuffer[prsCount++] = result;
+			}
+			break;
+		case -1: //read failed
+			break;
+		}
+	}
+	return DPS__SUCCEEDED;
 }
 
 int16_t Dps422::setInterruptPolarity(uint8_t polarity)
@@ -86,6 +137,7 @@ int16_t Dps422::setInterruptSources(bool fifoFull, bool tempReady, bool prsReady
 int16_t Dps422::getIntStatusFifoFull(void)
 {
 }
+
 int16_t Dps422::getIntStatusTempReady(void)
 {
 }
@@ -101,10 +153,6 @@ void Dps422::init(void)
 	writeByteBitfield(0x01, registers[MUST_SET]);
 	configTemp(DPS310__TEMP_STD_MR, DPS310__TEMP_STD_OSR);
 	configPressure(DPS310__PRS_STD_MR, DPS310__PRS_STD_OSR);
-}
-
-int16_t Dps422::getFIFOvalue(int32_t *value)
-{
 }
 
 int16_t Dps422::setOpMode(uint8_t opMode)
@@ -230,9 +278,9 @@ float Dps422::calcPressure(int32_t raw_prs, int32_t raw_temp)
 	float prs = raw_prs;
 	prs /= scaling_facts[m_prsOsr];
 
-	float temp = raw_temp;
-	temp /= 1048576;
-	temp = (8.5 * raw_temp) / (1 + 8.8 * raw_temp);
+	float tempx = raw_temp;
+	tempx /= 1048576;
+	float temp = (8.5 * tempx) / (1 + 8.8 * tempx);
 
 	prs = m_c00 + m_c10 * prs + m_c01 * temp + m_c20 * prs * prs + m_c02 * temp * temp + m_c30 * prs * prs * prs +
 		  m_c11 * temp * prs + m_c12 * prs * temp * temp + m_c21 * prs * prs * temp;

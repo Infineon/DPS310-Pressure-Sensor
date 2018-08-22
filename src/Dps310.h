@@ -101,7 +101,6 @@ class Dps310 : public DpsClass
     int16_t configPressure(uint8_t prs_mr, uint8_t prs_osr);
     int16_t readcoeffs(void);
     int16_t setOpMode(uint8_t opMode);
-    int16_t getFIFOvalue(int32_t *value);
 
     int16_t enableFIFO();
     int16_t disableFIFO();

@@ -77,7 +77,7 @@ int16_t Dps310::getContResults(float *tempBuffer,
 		int32_t raw_result;
 		float result;
 		//read next result from FIFO
-		int16_t type = getFIFOvalue(&raw_result);
+		int16_t type = getFIFOvalue(&raw_result, registerBlocks[PRS]);
 		switch (type)
 		{
 		case 0: //temperature
@@ -271,18 +271,6 @@ int16_t Dps310::readcoeffs(void)
 	m_c30 = ((uint32_t)buffer[16] << 8) | (uint32_t)buffer[17];
 	getTwosComplement(&m_c30, 16);
 	return DPS__SUCCEEDED;
-}
-
-int16_t Dps310::getFIFOvalue(int32_t *value)
-{
-	//abort on invalid argument
-	if (value == NULL)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	bool isPrs = 0;
-	getRawResult(value, registerBlocks[PRS], &isPrs);
-	return isPrs;
 }
 
 int16_t Dps310::setOpMode(uint8_t opMode)

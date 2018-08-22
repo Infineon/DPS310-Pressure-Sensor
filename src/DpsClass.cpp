@@ -110,7 +110,7 @@ int16_t DpsClass::measureTempOnce(float &result, uint8_t oversamplingRate)
 	}
 
 	//wait until measurement is finished
-	delay(calcBusyTime(0U, m_tempOsr) / DPS310__BUSYTIME_SCALING);
+	delay(calcBusyTime(0U, m_tempOsr) / DPS__BUSYTIME_SCALING);
 	delay(DPS310__BUSYTIME_FAILSAFE);
 
 	ret = getSingleResult(result);
@@ -167,7 +167,7 @@ int16_t DpsClass::measurePressureOnce(float &result, uint8_t oversamplingRate)
 	}
 
 	//wait until measurement is finished
-	delay(calcBusyTime(0U, m_prsOsr) / DPS310__BUSYTIME_SCALING);
+	delay(calcBusyTime(0U, m_prsOsr) / DPS__BUSYTIME_SCALING);
 	delay(DPS310__BUSYTIME_FAILSAFE);
 
 	ret = getSingleResult(result);
@@ -340,6 +340,18 @@ uint16_t DpsClass::calcBusyTime(uint16_t mr, uint16_t osr)
 	// TODO: check range
 	//formula from datasheet (optimized)
 	return ((uint32_t)20U << mr) + ((uint32_t)16U << (osr + mr));
+}
+
+int16_t DpsClass::getFIFOvalue(int32_t *value, RegBlock_t reg)
+{
+	//abort on invalid argument
+	if (value == NULL)
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+	bool isPrs = 0;
+	getRawResult(value, reg, &isPrs);
+	return isPrs;
 }
 
 int16_t DpsClass::readByte(uint8_t regAddress)

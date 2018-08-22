@@ -19,12 +19,12 @@
 #define DPS310__PRS_STD_OSR					3U
 #define DPS310__OSR_SE 						3U
 //we use 0.1 mS units for time calculations, so 10 units are one millisecond
-#define DPS310__BUSYTIME_SCALING 			10U
+#define DPS__BUSYTIME_SCALING 			10U
 // DPS310 has 10 milliseconds of spare time for each synchronous measurement / per second for asynchronous measurements
 // this is for error prevention on friday-afternoon-products :D
 // you can set it to 0 if you dare, but there is no warranty that it will still work
 #define DPS310__BUSYTIME_FAILSAFE			10U
-#define DPS310__MAX_BUSYTIME 				((1000U-DPS310__BUSYTIME_FAILSAFE)*DPS310__BUSYTIME_SCALING)
+#define DPS310__MAX_BUSYTIME 				((1000U-DPS310__BUSYTIME_FAILSAFE)*DPS__BUSYTIME_SCALING)
 
 #define DPS__NUM_OF_SCAL_FACTS				8
 
