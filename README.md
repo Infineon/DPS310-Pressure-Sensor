@@ -64,3 +64,7 @@ In case you need additional help, please do not hesitate to open an issue in thi
 
 ### Interrupt mode
 Interrupt mode not working reliably on XMC2Go for both DPS310 and DPS422.
+
+### SPI interface
+
+`SS not defined` when compiling examples needs to be fixed

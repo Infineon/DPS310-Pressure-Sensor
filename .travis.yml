@@ -6,7 +6,7 @@ sudo: required
         
 branches:
   only:
-    - master
+    - dps422-2
 
 env:
     global:
@@ -16,7 +16,7 @@ env:
     matrix:
         - PLATFORMIO_CI_SRC=examples/i2c_background 
         - PLATFORMIO_CI_SRC=examples/i2c_command_422 
-        - PLATFORMIO_CI_SRC=examples/spi_command 
+        # - PLATFORMIO_CI_SRC=examples/spi_command 
 
 install:
     # build with stable core
