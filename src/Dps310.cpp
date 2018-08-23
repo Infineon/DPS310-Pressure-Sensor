@@ -154,27 +154,6 @@ int16_t Dps310::getIntStatusPrsReady(void)
 	return readByteBitfield(registers[INT_FLAG_PRS]);
 }
 
-int16_t Dps310::correctTemp(void)
-{
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	writeByte(0x0E, 0xA5);
-	writeByte(0x0F, 0x96);
-	writeByte(0x62, 0x02);
-	writeByte(0x0E, 0x00);
-	writeByte(0x0F, 0x00);
-
-	//perform a first temperature measurement (again)
-	//the most recent temperature will be saved internally
-	//and used for compensation when calculating pressure
-	float trash;
-	measureTempOnce(trash);
-
-	return DPS__SUCCEEDED;
-}
-
 void Dps310::init(void)
 {
 	int16_t prodId = readByteBitfield(registers[PROD_ID]);

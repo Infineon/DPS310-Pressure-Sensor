@@ -395,6 +395,13 @@ class DpsClass
 	SPIClass *m_spibus;
 	int32_t m_chipSelect;
 	uint8_t m_threeWire;
+	
+    /**
+	 * Function to fix a hardware problem on some devices
+	 * You have this problem if you measure a temperature which is too high (e.g. 60°C when temperature is around 20°C)
+	 * Call correctTemp() directly after begin() to fix this issue
+	 */
+    int16_t correctTemp(void);
 
 	/**
 	 * Initializes the sensor.

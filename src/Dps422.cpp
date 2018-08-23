@@ -151,21 +151,12 @@ int16_t Dps422::getIntStatusPrsReady(void)
 ////////   private  /////////
 void Dps422::init(void)
 {
-	// reset
-	// writeByte(0x0D, 0x89);
-	// delay(10);
-	// writeByte(0x00, 0x80);
-	// writeByte(0x01, 0x00);
-	// writeByte(0x02, 0x00);
-	// writeByte(0x03, 0x80);
-	// writeByte(0x04, 0x00);
-	// writeByte(0x05, 0x00);
-
 	readcoeffs();
 	standby();
 	writeByteBitfield(0x01, registers[MUST_SET]);
 	configTemp(DPS310__TEMP_STD_MR, DPS310__TEMP_STD_OSR);
 	configPressure(DPS310__PRS_STD_MR, DPS310__PRS_STD_OSR);
+	correctTemp();
 }
 
 int16_t Dps422::setOpMode(uint8_t opMode)
@@ -180,7 +171,7 @@ int16_t Dps422::setOpMode(uint8_t opMode)
 
 int16_t Dps422::configTemp(uint8_t tempMr, uint8_t tempOsr)
 {
-	// TODO: optimize
+	// two accesses to the same register; for readability
 	int16_t ret = writeByteBitfield(tempMr, registers[TEMP_MR]);
 	ret = writeByteBitfield(tempOsr, registers[TEMP_OSR]);
 
@@ -195,7 +186,6 @@ int16_t Dps422::configTemp(uint8_t tempMr, uint8_t tempOsr)
 
 int16_t Dps422::configPressure(uint8_t prsMr, uint8_t prsOsr)
 {
-	// TODO: optimize
 	int16_t ret = writeByteBitfield(prsMr, registers[PRS_MR]);
 	ret = writeByteBitfield(prsOsr, registers[PRS_OSR]);
 
@@ -218,7 +208,7 @@ int16_t Dps422::readcoeffs(void)
 	// refer to datasheet
 	// 1. read T_Vbe, T_dVbe and T_gain
 	int32_t t_gain = buffer_temp[0];													 // 8 bits
-	int32_t t_dVbe = ((uint32_t)buffer_temp[1] & 0xFE) >> 1;							 // 7 bits
+	int32_t t_dVbe = (uint32_t)buffer_temp[1] >> 1;										 // 7 bits
 	int32_t t_Vbe = ((uint32_t)buffer_temp[1] & 0x01) | ((uint32_t)buffer_temp[2] << 1); // 9 bits
 
 	getTwosComplement(&t_gain, 8);
@@ -226,9 +216,9 @@ int16_t Dps422::readcoeffs(void)
 	getTwosComplement(&t_Vbe, 9);
 
 	// 2. Vbe, dVbe and Aadc
-	float Vbe = (float)t_Vbe * 1.05031e-4 + 0.463232422;
-	float dVbe = (float)t_dVbe * 1.25885e-5 + 0.04027621;
-	float Aadc = (float)t_gain * 8.4375e-5 + 0.675;
+	float Vbe = t_Vbe * 1.05031e-4 + 0.463232422;
+	float dVbe = t_dVbe * 1.25885e-5 + 0.04027621;
+	float Aadc = t_gain * 8.4375e-5 + 0.675;
 	// 3. Vbe_cal and dVbe_cal
 	float Vbe_cal = Vbe / Aadc;
 	float dVbe_cal = dVbe / Aadc;
@@ -249,10 +239,10 @@ int16_t Dps422::readcoeffs(void)
 	m_c10 = ((uint32_t)(buffer_prs[2] & 0x0F) << 16) | ((uint32_t)buffer_prs[3] << 8) | (uint32_t)buffer_prs[4];
 	m_c01 = ((uint32_t)buffer_prs[5] << 12) | ((uint32_t)buffer_prs[6] << 4) | (((uint32_t)buffer_prs[7] & 0xF0) >> 4);
 	m_c02 = ((uint32_t)(buffer_prs[7] & 0x0F) << 16) | ((uint32_t)buffer_prs[8] << 8) | (uint32_t)buffer_prs[9];
-	m_c20 = ((uint32_t)(buffer_prs[10] & 0xEF) << 10) | (uint32_t)buffer_prs[11];
+	m_c20 = ((uint32_t)(buffer_prs[10] & 0x7F) << 8) | (uint32_t)buffer_prs[11];
 	m_c30 = ((uint32_t)(buffer_prs[12] & 0x0F) << 8) | (uint32_t)buffer_prs[13];
 	m_c11 = ((uint32_t)buffer_prs[14] << 9) | ((uint32_t)buffer_prs[15] << 1) | (((uint32_t)buffer_prs[16] & 0x80) >> 7);
-	m_c12 = (((uint32_t)buffer_prs[16] & 0xEF) << 10) | ((uint32_t)buffer_prs[17] << 2) | (((uint32_t)buffer_prs[18] & 0xC0) >> 6);
+	m_c12 = (((uint32_t)buffer_prs[16] & 0x7F) << 10) | ((uint32_t)buffer_prs[17] << 2) | (((uint32_t)buffer_prs[18] & 0xC0) >> 6);
 	m_c21 = (((uint32_t)buffer_prs[18] & 0x3F) << 8) | ((uint32_t)buffer_prs[19]);
 
 	getTwosComplement(&m_c00, 20);
@@ -272,6 +262,7 @@ int16_t Dps422::enableFIFO()
 {
 	return writeByteBitfield(1U, registers[FIFO_EN]);
 }
+
 int16_t Dps422::disableFIFO()
 {
 	int16_t ret = writeByteBitfield(1U, registers[FIFO_FL]);
