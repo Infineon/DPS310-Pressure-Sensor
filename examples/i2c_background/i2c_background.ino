@@ -1,7 +1,11 @@
+// #define DPS422
+#ifdef DPS422
+#include <Dps422.h>
+Dps422 DigitalPressureSensor = Dps422();
+#else
 #include <Dps310.h>
-
-// Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
+#endif
 
 void setup()
 {
@@ -14,29 +18,10 @@ void setup()
   //Use the commented line below instead to use the default I2C address.
   DigitalPressureSensor.begin(Wire);
 
-  //temperature measure rate (value from 0 to 7)
-  //2^temp_mr temperature measurement results per second
-  int16_t temp_mr = 2;
-  //temperature oversampling rate (value from 0 to 7)
-  //2^temp_osr internal temperature measurements per result
-  //A higher value increases precision
-  int16_t temp_osr = 2;
-  //pressure measure rate (value from 0 to 7)
-  //2^prs_mr pressure measurement results per second
-  int16_t prs_mr = 2;
-  //pressure oversampling rate (value from 0 to 7)
-  //2^prs_osr internal pressure measurements per result
-  //A higher value increases precision
-  int16_t prs_osr = 2;
-  //startMeasureBothCont enables background mode
-  //temperature and pressure ar measured automatically
-  //High precision and hgh measure rates at the same time are not available.
-  //Consult Datasheet (or trial and error) for more information
-  int16_t ret = DigitalPressureSensor.startMeasureBothCont(temp_mr, temp_osr, prs_mr, prs_osr);
+  int16_t ret = DigitalPressureSensor.startMeasureBothCont(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_4, DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_4);
   //Use one of the commented lines below instead to measure only temperature or pressure
   //int16_t ret = DigitalPressureSensor.startMeasureTempCont(temp_mr, temp_osr);
   //int16_t ret = DigitalPressureSensor.startMeasurePressureCont(prs_mr, prs_osr);
-
 
   if (ret != 0)
   {
@@ -48,8 +33,6 @@ void setup()
     Serial.println("Init complete!");
   }
 }
-
-
 
 void loop()
 {

@@ -1,5 +1,8 @@
 #include <Dps310.h>
 
+#ifndef EXT_INTR_0  
+#define EXT_INTR_0 9 // for xmc2g0
+#endif
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
 
@@ -12,8 +15,6 @@ unsigned char temperatureCount = 0;
 const unsigned char temperatureLength = 50;
 float temperature[temperatureLength];
 
-
-
 void setup()
 {
   Serial.begin(9600);
@@ -24,24 +25,19 @@ void setup()
   //DigitalPressureSensor.begin(Wire, 0x76);
   //Use the commented line below instead to use the default I2C address.
   DigitalPressureSensor.begin(Wire);
-  
-  int16_t ret = DigitalPressureSensor.setInterruptPolarity(1);
-  ret = DigitalPressureSensor.setInterruptSources(1, 0, 0);
+
+  ret = DigitalPressureSensor.setInterruptSources(DPS310_FIFO_FULL_INTR);
   //clear interrupt flag by reading
   DigitalPressureSensor.getIntStatusFifoFull();
 
   //initialization of Interrupt for Controller unit
   //SDO pin of Dps310 has to be connected with interrupt pin
-  int16_t interruptPin = 3;
-  pinMode(interruptPin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), onFifoFull, RISING);
+
+  pinMode(EXT_INTR_0, INPUT);
+  attachInterrupt(digitalPinToInterrupt(EXT_INTR_0), onFifoFull, RISING);
 
   //start of a continuous measurement just like before
-  int16_t temp_mr = 3;
-  int16_t temp_osr = 2;
-  int16_t prs_mr = 1;
-  int16_t prs_osr = 3;
-  ret = DigitalPressureSensor.startMeasureBothCont(temp_mr, temp_osr, prs_mr, prs_osr);
+  int16_t ret = DigitalPressureSensor.startMeasureBothCont(DPS__MEASUREMENT_RATE_8, DPS__MEASUREMENT_RATE_4, DPS__MEASUREMENT_RATE_1, DPS__MEASUREMENT_RATE_8);
   if (ret != 0)
   {
     Serial.print("Init FAILED! ret = ");
@@ -96,7 +92,7 @@ void loop()
 void onFifoFull()
 {
   //message for debugging
-  Serial.println("Interrupt handler called");
+  // Serial.println("Interrupt handler called");
 
   //clear interrupt flag by reading
   DigitalPressureSensor.getIntStatusFifoFull();

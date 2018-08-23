@@ -333,8 +333,6 @@ int16_t DpsClass::standby(void)
 	return ret;
 }
 
-//////// 	Declaration of private functions starts here	////////
-
 int16_t DpsClass::correctTemp(void)
 {
 	if (m_initFail)
@@ -356,9 +354,10 @@ int16_t DpsClass::correctTemp(void)
 	return DPS__SUCCEEDED;
 }
 
+//////// 	Declaration of private functions starts here	////////
+
 uint16_t DpsClass::calcBusyTime(uint16_t mr, uint16_t osr)
 {
-	// TODO: check range
 	//formula from datasheet (optimized)
 	return ((uint32_t)20U << mr) + ((uint32_t)16U << (osr + mr));
 }
@@ -571,8 +570,6 @@ int16_t DpsClass::readByteBitfield(RegMask_t regMask)
 
 int16_t DpsClass::readBlock(RegBlock_t regBlock, uint8_t *buffer)
 {
-	// TODO: add length check
-
 	//delegate to specialized function if Dps310 is connected via SPI
 	if (m_SpiI2c == 0)
 	{

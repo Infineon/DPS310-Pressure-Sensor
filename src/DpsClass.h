@@ -294,16 +294,6 @@ class DpsClass
 	virtual int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount) = 0;
 
 	/**
-	 * Sets the active state of the Interrupt pin
-	 *
-	 * polarity: 	If this is 0, the interrupt pin of the Dps310 will be low-active
-	 * 				If this is 1, the interrupt pin of the Dps310 will be high-active
-	 * returns:		0 on success,
-	 * 				-1 on fail
-	 */
-	virtual int16_t setInterruptPolarity(uint8_t polarity) = 0;
-
-	/**
 	 * Gets the interrupt status flag of the FIFO
 	 *
 	 * Returns: 	1 if the FIFO is full and caused an interrupt
@@ -330,6 +320,13 @@ class DpsClass
 	 */
 	virtual int16_t getIntStatusPrsReady(void) = 0;
 
+    /**
+	 * Function to fix a hardware problem on some devices
+	 * You have this problem if you measure a temperature which is too high (e.g. 60°C when temperature is around 20°C)
+	 * Call correctTemp() directly after begin() to fix this issue
+	 */
+    int16_t correctTemp(void);
+	
   protected:
 	//scaling factor table
 	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
@@ -379,13 +376,6 @@ class DpsClass
 	SPIClass *m_spibus;
 	int32_t m_chipSelect;
 	uint8_t m_threeWire;
-
-    /**
-	 * Function to fix a hardware problem on some devices
-	 * You have this problem if you measure a temperature which is too high (e.g. 60°C when temperature is around 20°C)
-	 * Call correctTemp() directly after begin() to fix this issue
-	 */
-    int16_t correctTemp(void);
 
 	/**
 	 * Initializes the sensor.

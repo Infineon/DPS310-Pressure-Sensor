@@ -128,11 +128,7 @@ int16_t Dps422::getContResults(float *tempBuffer,
 	return DPS__SUCCEEDED;
 }
 
-int16_t Dps422::setInterruptPolarity(uint8_t polarity)
-{
-}
-
-int16_t Dps422::setInterruptSources(uint8_t intr_source)
+int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 {
 	// Intrrupt only supported by I2C or 3-Wire SPI
 	if (!m_SpiI2c & !m_threeWire)
@@ -141,18 +137,23 @@ int16_t Dps422::setInterruptSources(uint8_t intr_source)
 	}
 
 	writeByteBitfield(intr_source, registers[INTR_SEL]);
+	writeByteBitfield(polarity, registers[INTR_POL]);
 }
 
 int16_t Dps422::getIntStatusFifoFull(void)
 {
+	// This bit should not be polled faster than once per 375 us
+	return readByteBitfield(registers[FIFO_FULL]);
 }
 
 int16_t Dps422::getIntStatusTempReady(void)
 {
+	return readByteBitfield(registers[TEMP_RDY_INTR]);
 }
 
 int16_t Dps422::getIntStatusPrsReady(void)
 {
+	return readByteBitfield(registers[PRS_RDY_INTR]);
 }
 
 ////////   private  /////////
@@ -161,8 +162,8 @@ void Dps422::init(void)
 	readcoeffs();
 	standby();
 	writeByteBitfield(0x01, registers[MUST_SET]);
-	configTemp(DPS310__TEMP_STD_MR, DPS310__TEMP_STD_OSR);
-	configPressure(DPS310__PRS_STD_MR, DPS310__PRS_STD_OSR);
+	configTemp(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
+	configPressure(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
 	correctTemp();
 }
 
@@ -178,6 +179,8 @@ int16_t Dps422::setOpMode(uint8_t opMode)
 
 int16_t Dps422::configTemp(uint8_t tempMr, uint8_t tempOsr)
 {
+	tempMr &= 0x07;
+	tempOsr &= 0x07;
 	// two accesses to the same register; for readability
 	int16_t ret = writeByteBitfield(tempMr, registers[TEMP_MR]);
 	ret = writeByteBitfield(tempOsr, registers[TEMP_OSR]);
@@ -193,6 +196,8 @@ int16_t Dps422::configTemp(uint8_t tempMr, uint8_t tempOsr)
 
 int16_t Dps422::configPressure(uint8_t prsMr, uint8_t prsOsr)
 {
+	prsMr &= 0x07;
+	prsOsr &= 0x07;
 	int16_t ret = writeByteBitfield(prsMr, registers[PRS_MR]);
 	ret = writeByteBitfield(prsOsr, registers[PRS_OSR]);
 

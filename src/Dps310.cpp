@@ -116,27 +116,19 @@ int16_t Dps310::getContResults(float *tempBuffer,
 	return DPS__SUCCEEDED;
 }
 
-int16_t Dps310::setInterruptPolarity(uint8_t polarity)
+int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 {
 	//Interrupts are not supported with 4 Wire SPI
 	if (!m_SpiI2c & !m_threeWire)
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
+
+	writeByteBitfield(intr_source & 0x04, registers[INT_EN_FIFO]);
+	writeByteBitfield(intr_source & 0x02, registers[INT_EN_TEMP]);
+	writeByteBitfield(intr_source & 0x01, registers[INT_EN_PRS]);
+
 	return writeByteBitfield(polarity, registers[INT_HL]);
-}
-
-int16_t Dps310::setInterruptSources(bool fifoFull, bool tempReady, bool prsReady)
-{
-	//Interrupts are not supported with 4 Wire SPI
-	if (!m_SpiI2c & !m_threeWire)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-
-	writeByteBitfield(fifoFull, registers[INT_EN_FIFO]);
-	writeByteBitfield(tempReady, registers[INT_EN_TEMP]);
-	writeByteBitfield(prsReady, registers[INT_EN_PRS]);
 }
 
 int16_t Dps310::getIntStatusFifoFull(void)
@@ -200,8 +192,8 @@ void Dps310::init(void)
 	standby();
 
 	//set measurement precision and rate to standard values;
-	configTemp(DPS310__TEMP_STD_MR, DPS310__TEMP_STD_OSR);
-	configPressure(DPS310__PRS_STD_MR, DPS310__PRS_STD_OSR);
+	configTemp(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
+	configPressure(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
 
 	//perform a first temperature measurement
 	//the most recent temperature will be saved internally
@@ -264,7 +256,8 @@ int16_t Dps310::setOpMode(uint8_t opMode)
 
 int16_t Dps310::configTemp(uint8_t tempMr, uint8_t tempOsr)
 {
-	// TODO: check range
+	tempMr &= 0x07;
+	tempOsr &= 0x07;
 
 	int16_t ret = writeByteBitfield(tempMr, registers[TEMP_MR]);
 	ret = writeByteBitfield(tempOsr, registers[TEMP_OSR]);
@@ -305,7 +298,8 @@ int16_t Dps310::configTemp(uint8_t tempMr, uint8_t tempOsr)
 
 int16_t Dps310::configPressure(uint8_t prsMr, uint8_t prsOsr)
 {
-	// TODO: range check
+	prsMr &= 0x07;
+	prsOsr &= 0x07;
 
 	int16_t ret = writeByteBitfield(prsMr, registers[PRS_MR]);
 	ret = writeByteBitfield(prsOsr, registers[PRS_OSR]);

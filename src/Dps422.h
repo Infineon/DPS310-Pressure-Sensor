@@ -14,13 +14,22 @@
 
 #define DPS422_NUM_OF_REGMASKS 30
 
+enum Interrupt_source_420_e
+{
+    DPS422_NO_INTR = 0,
+    DPS422_PRS_INTR = 1,
+    DPS422_TEMP_INTR = 2,
+    DPS422_BOTH_INTR = 3,
+    DPS422_FIFO_WM_INTR = 4,
+    DPS422_FIFO_FULL_INTR = 8,
+};
+
 class Dps422 : public DpsClass
 {
   public:
     int16_t getSingleResult(float &result);
     int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount);
-    int16_t setInterruptPolarity(uint8_t polarity);
-    int16_t setInterruptSources(uint8_t intr_source);
+    int16_t setInterruptSources(uint8_t intr_source, uint8_t polarity = 1);
     int16_t getIntStatusFifoFull(void);
     int16_t getIntStatusTempReady(void);
     int16_t getIntStatusPrsReady(void);
@@ -114,16 +123,6 @@ class Dps422 : public DpsClass
         {0x03, 3},
         {0x20, 3},
         {0x26, 20},
-    };
-
-    enum InterruptSource_e
-    {
-        NO_INTR = 0,
-        PRS_INTR = 1,
-        TEMP_INTR = 2,
-        BOTH_INTR = 3,
-        FIFO_WM_INTR = 4,
-        FIFO_FULL_INTR = 8,
     };
 
     void init(void);

@@ -5,29 +5,29 @@
 
 #define DPS310_NUM_OF_REGMASKS 24
 
+enum Interrupt_source_310_e
+{
+    DPS310_NO_INTR = 0,
+    DPS310_PRS_INTR = 1,
+    DPS310_TEMP_INTR = 2,
+    DPS310_BOTH_INTR = 3,
+    DPS310_FIFO_FULL_INTR = 4,
+};
+
 class Dps310 : public DpsClass
 {
   public:
     int16_t getSingleResult(float &result);
     int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount);
-    int16_t setInterruptPolarity(uint8_t polarity);
+
     /**
-	 * Sets the sources that are able to cause interrupts
-	 *
-	 * fifoFull: 	if this is 1, an interrupt will be generated
-	 * 				when the FIFO is full
-	 * 				if this is 0, the FIFO will not generate any interrupts
-	 * tempReady: 	if this is 1, an interrupt will be generated
-	 * 				when a temperature measurement is finished
-	 * 				if this is 0, no interrupt will be generated
-	 * 				after finishing a temperature measurement
-	 * prsReady: 	if this is 1, an interrupt will be generated
-	 * 				when a pressure measurement is finished
-	 * 				if this is 0, no interrupt will be generated
-	 * 				after finishing a pressure measurement
-	 * returns: 	0 on success, -1 on fail
-	 */
-    int16_t setInterruptSources(bool fifoFull, bool tempReady, bool prsReady);
+     * @brief Set the Interrupt Sources object
+     * 
+     * @param intr_source should be chosen from Interrupt_source_310_e
+     * @param polarity 
+     * @return int16_t 
+     */
+    int16_t setInterruptSources(uint8_t intr_source, uint8_t polarity = 1);
     int16_t getIntStatusFifoFull(void);
     int16_t getIntStatusTempReady(void);
     int16_t getIntStatusPrsReady(void);

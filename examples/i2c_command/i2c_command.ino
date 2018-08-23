@@ -2,12 +2,14 @@
 
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
+float temperature;
+float pressure;
 
 void setup()
 {
   Serial.begin(9600);
-  while (!Serial);
-
+  while (!Serial)
+    ;
 
   //Call begin to initialize DigitalPressureSensor
   //The parameter 0x76 is the bus address. The default address is 0x77 and does not need to be given.
@@ -19,24 +21,13 @@ void setup()
   Serial.println("Init complete!");
 }
 
-
-
 void loop()
 {
-  float temperature;
-  float pressure;
-  int16_t oversampling = 7;
   int16_t ret;
   Serial.println();
 
-  //lets the Dps310 perform a Single temperature measurement with the last (or standard) configuration
-  //The result will be written to the paramerter temperature
   //ret = DigitalPressureSensor.measureTempOnce(temperature);
-  //the commented line below does exactly the same as the one above, but you can also config the precision
-  //oversampling can be a value from 0 to 7
-  //the Dps 310 will perform 2^oversampling internal temperature measurements and combine them to one result with higher precision
-  //measurements with higher precision take more time, consult datasheet for more information
-  ret = DigitalPressureSensor.measureTempOnce(temperature, oversampling);
+  ret = DigitalPressureSensor.measureTempOnce(temperature, DPS__OVERSAMPLING_RATE_128);
 
   if (ret != 0)
   {
@@ -54,7 +45,7 @@ void loop()
 
   //Pressure measurement behaves like temperature measurement
   //ret = DigitalPressureSensor.measurePressureOnce(pressure);
-  ret = DigitalPressureSensor.measurePressureOnce(pressure, oversampling);
+  ret = DigitalPressureSensor.measurePressureOnce(pressure, DPS__OVERSAMPLING_RATE_128);
   if (ret != 0)
   {
     //Something went wrong.
