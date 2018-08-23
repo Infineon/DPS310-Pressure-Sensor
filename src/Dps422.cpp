@@ -57,7 +57,7 @@ int16_t Dps422::getSingleResult(float &result)
 		case CMD_TEMP: //temperature
 			getRawResult(&raw_val, registerBlocks[TEMP]);
 			result = calcTemp(raw_val);
-			last_raw_temp = result;
+			last_raw_temp = raw_val;
 			return DPS__SUCCEEDED; // TODO
 		case CMD_PRS:			   //pressure
 			getRawResult(&raw_val, registerBlocks[PRS]);
@@ -111,7 +111,7 @@ int16_t Dps422::getContResults(float *tempBuffer,
 			{
 				result = calcTemp(raw_result);
 				tempBuffer[tempCount++] = result;
-				last_raw_temp = result;
+				last_raw_temp = raw_result;
 			}
 			break;
 		case 1: //pressure
@@ -283,7 +283,6 @@ float Dps422::calcTemp(int32_t raw)
 
 float Dps422::calcPressure(int32_t raw_prs, int32_t raw_temp)
 {
-	// TODO: pressure calculation requires temperature values - what happens if temp reading disabled?
 	float prs = raw_prs;
 	prs /= scaling_facts[m_prsOsr];
 

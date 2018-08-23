@@ -606,21 +606,26 @@ void DpsClass::getTwosComplement(int32_t *raw, uint8_t length)
 	}
 }
 
-void DpsClass::getRawResult(int32_t *raw, RegBlock_t reg)
+int16_t DpsClass::getRawResult(int32_t *raw, RegBlock_t reg)
 {
-	uint8_t buffer[3] = {0};
-	int16_t i = readBlock(reg, buffer);
-	*raw = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
+	uint8_t buffer[DPS__RESULT_BLOCK_LENGTH] = {0};
+	if (readBlock(reg, buffer) != DPS__RESULT_BLOCK_LENGTH)
+		return DPS__FAIL_UNKNOWN;
 
+	*raw = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
 	getTwosComplement(raw, 24);
+	return DPS__SUCCEEDED;
 }
 
-void DpsClass::getRawResult(int32_t *raw, RegBlock_t reg, bool *isPrs)
+int16_t DpsClass::getRawResult(int32_t *raw, RegBlock_t reg, bool *isPrs)
 {
-	uint8_t buffer[3] = {0};
-	int16_t i = readBlock(reg, buffer);
+	uint8_t buffer[DPS__RESULT_BLOCK_LENGTH] = {0};
+
+	if (readBlock(reg, buffer) != DPS__RESULT_BLOCK_LENGTH)
+		return DPS__FAIL_UNKNOWN;
 	*raw = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
 
 	getTwosComplement(raw, 24);
 	*isPrs = buffer[2] & 0x01;
+	return DPS__SUCCEEDED;
 }

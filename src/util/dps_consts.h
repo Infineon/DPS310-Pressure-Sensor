@@ -31,6 +31,8 @@
 ///////////     common    ///////////
 // slave address same for 422 and 310 (to be proved for future sensors)
 #define DPS__STD_SLAVE_ADDRESS               0x77U   
+#define DPS__RESULT_BLOCK_LENGTH             3
+
 //we use 0.1 ms units for time calculations, so 10 units are one millisecond
 #define DPS__BUSYTIME_SCALING                10U
 

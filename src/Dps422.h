@@ -124,8 +124,8 @@ class Dps422 : public DpsClass
     int16_t enableFIFO();
     int16_t disableFIFO();
     float calcTemp(int32_t raw);
-    // TODO: use a plausible default temp val
-    float calcPressure(int32_t raw, int32_t raw_temp = 0);
+    // in case temperature reading disabled, the default raw temperature value correspond the reference temperature of 27 degress.
+    float calcPressure(int32_t raw, int32_t raw_temp = 91400);
 };
 
 #endif
