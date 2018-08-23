@@ -151,6 +151,16 @@ int16_t Dps422::getIntStatusPrsReady(void)
 ////////   private  /////////
 void Dps422::init(void)
 {
+	// reset
+	// writeByte(0x0D, 0x89);
+	// delay(10);
+	// writeByte(0x00, 0x80);
+	// writeByte(0x01, 0x00);
+	// writeByte(0x02, 0x00);
+	// writeByte(0x03, 0x80);
+	// writeByte(0x04, 0x00);
+	// writeByte(0x05, 0x00);
+
 	readcoeffs();
 	standby();
 	writeByteBitfield(0x01, registers[MUST_SET]);
@@ -210,6 +220,11 @@ int16_t Dps422::readcoeffs(void)
 	int32_t t_gain = buffer_temp[0];													 // 8 bits
 	int32_t t_dVbe = ((uint32_t)buffer_temp[1] & 0xFE) >> 1;							 // 7 bits
 	int32_t t_Vbe = ((uint32_t)buffer_temp[1] & 0x01) | ((uint32_t)buffer_temp[2] << 1); // 9 bits
+
+	getTwosComplement(&t_gain, 8);
+	getTwosComplement(&t_dVbe, 7);
+	getTwosComplement(&t_Vbe, 9);
+
 	// 2. Vbe, dVbe and Aadc
 	float Vbe = (float)t_Vbe * 1.05031e-4 + 0.463232422;
 	float dVbe = (float)t_dVbe * 1.25885e-5 + 0.04027621;
