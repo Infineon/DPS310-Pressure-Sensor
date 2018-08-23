@@ -1,0 +1,39 @@
+language: python
+python:
+    - "2.7"
+
+sudo: required
+        
+branches:
+  only:
+    - master
+
+env:
+    global:
+        - USR_NAME="mhoechner"
+        - USR_EMAIL="Moritz.Hoechner@infineon.com"
+        - secure: ToBeRegenerated
+    matrix:
+        - PLATFORMIO_CI_SRC=examples/i2c_background 
+        - PLATFORMIO_CI_SRC=examples/i2c_command_422 
+        - PLATFORMIO_CI_SRC=examples/spi_command 
+
+install:
+    # build with stable core
+    - pip install -U platformio
+    - platformio platform install -f infineonxmc
+
+script:
+    - platformio ci --lib="." --board=xmc1100_xmc2go --board=xmc1100_boot_kit
+
+# after_success:
+    # # only build once (after one job by checking id, however this does not work reliably)
+    # - |
+      # if [ $(($TRAVIS_JOB_ID - $TRAVIS_BUILD_ID)) -eq 2 ]; then
+        # export REPO_NAME=${TRAVIS_REPO_SLUG#*/}
+        # git clone https://github.com/Infineon/InfineonDoxyGenerator.git
+        # cd InfineonDoxyGenerator/docs
+        # # cd $TRAVIS_BUILD_DIR/docs
+        # chmod +x publish_pdf.sh
+        # ./publish_pdf.sh
+      # fi
