@@ -365,13 +365,12 @@ uint16_t DpsClass::calcBusyTime(uint16_t mr, uint16_t osr)
 
 int16_t DpsClass::getFIFOvalue(int32_t *value, RegBlock_t reg)
 {
-	//abort on invalid argument
-	if (value == NULL)
+	bool isPrs = 0;
+	//abort on invalid argument or failed block reading
+	if (value == NULL || getRawResult(value, reg, &isPrs))
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
-	bool isPrs = 0;
-	getRawResult(value, reg, &isPrs);
 	return isPrs;
 }
 

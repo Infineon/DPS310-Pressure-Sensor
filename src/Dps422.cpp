@@ -132,8 +132,15 @@ int16_t Dps422::setInterruptPolarity(uint8_t polarity)
 {
 }
 
-int16_t Dps422::setInterruptSources(bool fifoFull, bool tempReady, bool prsReady)
+int16_t Dps422::setInterruptSources(uint8_t intr_source)
 {
+	// Intrrupt only supported by I2C or 3-Wire SPI
+	if (!m_SpiI2c & !m_threeWire)
+	{
+		return DPS__FAIL_UNKNOWN;
+	}
+
+	writeByteBitfield(intr_source, registers[INTR_SEL]);
 }
 
 int16_t Dps422::getIntStatusFifoFull(void)

@@ -302,23 +302,7 @@ class DpsClass
 	 * 				-1 on fail
 	 */
 	virtual int16_t setInterruptPolarity(uint8_t polarity) = 0;
-	/**
-	 * Sets the sources that are able to cause interrupts
-	 *
-	 * fifoFull: 	if this is 1, an interrupt will be generated
-	 * 				when the FIFO is full
-	 * 				if this is 0, the FIFO will not generate any interrupts
-	 * tempReady: 	if this is 1, an interrupt will be generated
-	 * 				when a temperature measurement is finished
-	 * 				if this is 0, no interrupt will be generated
-	 * 				after finishing a temperature measurement
-	 * prsReady: 	if this is 1, an interrupt will be generated
-	 * 				when a pressure measurement is finished
-	 * 				if this is 0, no interrupt will be generated
-	 * 				after finishing a pressure measurement
-	 * returns: 	0 on success, -1 on fail
-	 */
-	virtual int16_t setInterruptSources(bool fifoFull, bool tempReady, bool prsReady) = 0;
+
 	/**
 	 * Gets the interrupt status flag of the FIFO
 	 *
