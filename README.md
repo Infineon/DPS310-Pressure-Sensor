@@ -12,17 +12,22 @@ Sensor measurements and calibration coefficients are available through the seria
 ## Usage
 Please follow the example sketches in the /examples directory in this library to learn more about the usage of the library. Especially, take care of the SPI and I²C configuration of the sensor. For more information, please consult the datasheet [here](https://www.infineon.com/dgdl/Infineon-DPS310-DS-v01_00-EN.pdf?fileId=5546d462576f34750157750826c42242).
 
-For different sensor types, the initialization should be modified.
+### Using DPS422
+For different sensor types, the initialization should be adapted, as in example **i2c_background**:
 
-For DPS310:
 ```
-Dps310 DigitalPressureSensor = Dps310();
-```
-
-For DPS422:
-```
+// #define DPS422
+#ifdef DPS422
+#include <Dps422.h>
 Dps422 DigitalPressureSensor = Dps422();
+#else
+#include <Dps310.h>
+Dps310 DigitalPressureSensor = Dps310();
+#endif
 ```
+
+Currently DPS422 only works with 2 examples: **i2c_background** and **i2c_command_422**. SPI is yet not enabled for DPS422.
+
 
 ## Key Features and Benefits
 * Operation range: Pressure: 300 –1200 hPa. Temperature: -40 – 85 °C.
@@ -51,7 +56,11 @@ To install the DPS310 pressure sensor library in the Arduino IDE, please go now 
 ![Install Library](https://raw.githubusercontent.com/infineon/assets/master/Pictures/Library_Install_ZIP.png)
 
 
-## Note: Temperature Measurement Issue
+## Known Issues
+### Temperature Measurement Issue
 There could be a problem with the fuse bits in the DPS310 with which you are using this library. If your DPS310 indicates a temperature around 60 °C although you expect around room temperature, e.g. 20 °C, please call the function correctTemp() as indicated in the examples to fix this issue.
 Many excuses for any problems arising from this problem.
 In case you need additional help, please do not hesitate to open an issue in this repository.
+
+### Interrupt mode
+Interrupt mode not working reliably on XMC2Go for both DPS310 and DPS422.
