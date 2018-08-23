@@ -2,11 +2,13 @@
 
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
+float pressure[pressureCount];
+float temperature[temperatureCount];
 
 void setup()
 {
   //pin number of your slave select line
-  int16_t pin_cs = SS;
+  int16_t pin_cs = PIN_SPI_SS;
 
   Serial.begin(9600);
   while (!Serial);
@@ -56,10 +58,7 @@ void setup()
 void loop()
 {
   unsigned char pressureCount = 20;
-  float pressure[pressureCount];
   unsigned char temperatureCount = 20;
-  float temperature[temperatureCount];
-
   //This function writes the results of continuous measurements to the arrays given as parameters
   //The parameters temperatureCount and pressureCount should hold the sizes of the arrays temperature and pressure when the function is called
   //After the end of the function, temperatureCount and pressureCount hold the numbers of values written to the arrays

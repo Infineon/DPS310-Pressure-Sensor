@@ -13,12 +13,10 @@ const unsigned char temperatureLength = 50;
 float temperature[temperatureLength];
 
 
-
-
 void setup()
 {
   //pin number of your slave select line
-  int16_t pin_cs = SS;
+  int16_t pin_cs = PIN_SPI_SS;
 
   Serial.begin(9600);
   while (!Serial);

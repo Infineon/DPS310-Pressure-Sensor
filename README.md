@@ -1,4 +1,7 @@
 # Digital-Pressure-Sensor
+
+[![Build Status](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor.svg?branch=master)](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor)
+
 <img src="https://github.com/Infineon/Assets/blob/master/Pictures/DPS310_PP.jpg">
 
 Library of Infineon's highly sensitive [DPS310 sensor](https://www.infineon.com/cms/de/product/sensor/capacitive-pressure-sensor-for-consumer-applications/DPS310/productType.html?productType=5546d462525dbac4015312b96a743801) and [DPS422 sensor](https://www.infineon.com/cms/en/product/sensor/barometric-pressure-sensor-for-consumer-applications/dps422/) for Arduino.
@@ -64,7 +67,3 @@ In case you need additional help, please do not hesitate to open an issue in thi
 
 ### Interrupt mode
 Interrupt mode not working reliably on XMC2Go for both DPS310 and DPS422.
-
-### SPI interface
-
-`SS not defined` when compiling examples needs to be fixed

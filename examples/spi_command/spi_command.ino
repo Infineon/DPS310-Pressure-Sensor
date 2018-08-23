@@ -2,19 +2,18 @@
 
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
+float temperature;
+float pressure;
 
 void setup()
 {
-  //pin number of your slave select line
-  int16_t pin_cs = SS;
-
   Serial.begin(9600);
   while (!Serial);
 
 
   //Call begin to initialize DigitalPressureSensor
   //The parameter pin_nr is the number of the CS pin on your Microcontroller
-  DigitalPressureSensor.begin(SPI, pin_cs);
+  DigitalPressureSensor.begin(SPI, PIN_SPI_SS);
 
   Serial.println("Init complete!");
 }
@@ -23,8 +22,6 @@ void setup()
 
 void loop()
 {
-  float temperature;
-  float pressure;
   int16_t oversampling = 7;
   int16_t ret;
   Serial.println();
