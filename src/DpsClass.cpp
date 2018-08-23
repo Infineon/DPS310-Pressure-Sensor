@@ -17,7 +17,7 @@ DpsClass::~DpsClass(void)
 
 void DpsClass::begin(TwoWire &bus)
 {
-	begin(bus, DPS310__STD_SLAVE_ADDRESS);
+	begin(bus, DPS__STD_SLAVE_ADDRESS);
 }
 
 void DpsClass::begin(TwoWire &bus, uint8_t slaveAddress)
