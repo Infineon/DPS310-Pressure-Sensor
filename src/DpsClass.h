@@ -18,8 +18,9 @@
 
 #include <SPI.h>
 #include <Wire.h>
-#include "util/dps_consts.h"
-#include "util/DpsRegister.h"
+#include "util/dps_config.h"
+
+using namespace dps;
 
 class DpsClass
 {
@@ -265,65 +266,7 @@ class DpsClass
 	//scaling factor table
 	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
 
-	/////////////  configuration and registers that are common to 2 existing sensor classes  /////////////
-	//enum for operating mode
-	enum Mode
-	{
-		IDLE = 0x00,
-		CMD_PRS = 0x01,
-		CMD_TEMP = 0x02,
-		CMD_BOTH = 0x03, // only for DPS422
-		CONT_PRS = 0x05,
-		CONT_TMP = 0x06,
-		CONT_BOTH = 0x07
-	};
 	Mode m_opMode;
-
-	enum RegisterBlocks_e
-	{
-		PRS = 0, // pressure value
-		TEMP,	// temperature value
-	};
-
-	RegBlock_t registerBlocks[2] = {
-		{0x00, 3},
-		{0x03, 3},
-	};
-
-	/**
-	 * @brief registers for configuration and flags; these are the same for both 310 and 422, might need to be adapted for future sensors
-	 * 
-	 */
-	enum Config_Registers_e
-	{
-		TEMP_MR = 0, // temperature measure rate
-		TEMP_OSR,	// temperature measurement resolution
-		PRS_MR,		 // pressure measure rate
-		PRS_OSR,	 // pressure measurement resolution
-		MSR_CTRL,	// measurement control
-		FIFO_EN,
-
-		TEMP_RDY,
-		PRS_RDY,
-		INT_FLAG_FIFO,
-		INT_FLAG_TEMP,
-		INT_FLAG_PRS,
-	};
-
-	RegMask_t config_registers[NUM_OF_COMMON_REGMASKS] = {
-		{0x07, 0x70, 4}, // TEMP_MR
-		{0x07, 0x07, 0}, // TEMP_OSR
-		{0x06, 0x70, 4}, // PRS_MR
-		{0x06, 0x07, 0}, // PRS_OSR
-		{0x08, 0x07, 0}, // MSR_CTRL
-		{0x09, 0x02, 1}, // FIFO_EN
-
-		{0x08, 0x20, 5}, // TEMP_RDY
-		{0x08, 0x10, 4}, // PRS_RDY
-		{0x0A, 0x04, 2}, // INT_FLAG_FIFO
-		{0x0A, 0x02, 1}, // INT_FLAG_TEMP
-		{0x0A, 0x01, 0}, // INT_FLAG_PRS
-	};
 
 	//flags
 	uint8_t m_initFail;

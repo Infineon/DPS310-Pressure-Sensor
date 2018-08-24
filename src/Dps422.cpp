@@ -6,6 +6,7 @@ int16_t Dps422::measureBothOnce(float &prs, float &temp)
 {
 	setOpMode(CMD_BOTH);
 	delay((calcBusyTime(0U, m_tempOsr) + (calcBusyTime(0U, m_prsOsr)) / DPS__BUSYTIME_SCALING));
+	// config_registers defined in namespace dps
 	int16_t rdy = readByteBitfield(config_registers[PRS_RDY]) & readByteBitfield(config_registers[TEMP_RDY]);
 	switch (rdy)
 	{
@@ -31,7 +32,7 @@ int16_t Dps422::getContResults(float *tempBuffer,
 							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
-	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer,prsCount, registers[FIFO_EMPTY]);
+	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer,prsCount, dps422::registers[dps422::FIFO_EMPTY]);
 }
 
 int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
@@ -42,19 +43,18 @@ int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 		return DPS__FAIL_UNKNOWN;
 	}
 
-	writeByteBitfield(intr_source, registers[INTR_SEL]);
-	writeByteBitfield(polarity, registers[INTR_POL]);
+	writeByteBitfield(intr_source, dps422::registers[dps422::INTR_SEL]);
+	writeByteBitfield(polarity, dps422::registers[dps422::INTR_POL]);
 }
 
 ////////   private  /////////
 void Dps422::init(void)
 {
-	// last_raw_temp = 91400; 
 	m_lastTempScal = 0.08716583251; // in case temperature reading disabled, the default raw temperature value correspond the reference temperature of 27 degress.
 	standby();
 	readcoeffs();
 	standby();
-	writeByteBitfield(0x01, registers[MUST_SET]);
+	writeByteBitfield(0x01, dps422::registers[dps422::MUST_SET]);
 	configTemp(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
 	configPressure(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
 	correctTemp();
@@ -64,8 +64,8 @@ int16_t Dps422::readcoeffs(void)
 {
 	uint8_t buffer_temp[3];
 	uint8_t buffer_prs[20];
-	readBlock(coeffBlocks[COEF_TEMP], buffer_temp);
-	readBlock(coeffBlocks[COEF_PRS], buffer_prs);
+	readBlock(dps422::coeffBlocks[dps422::COEF_TEMP], buffer_temp);
+	readBlock(dps422::coeffBlocks[dps422::COEF_PRS], buffer_prs);
 
 	// refer to datasheet
 	// 1. read T_Vbe, T_dVbe and T_gain
@@ -122,7 +122,7 @@ int16_t Dps422::readcoeffs(void)
 
 int16_t Dps422::flushFIFO()
 {
-	return writeByteBitfield(1U, config_registers[FIFO_FL]);
+	return writeByteBitfield(1U, dps422::registers[dps422::FIFO_FL]);
 }
 
 

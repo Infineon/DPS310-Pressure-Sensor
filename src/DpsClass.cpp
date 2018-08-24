@@ -181,7 +181,7 @@ int16_t DpsClass::getSingleResult(float &result)
 	case 0: //ready flag not set, measurement still in progress
 		return DPS__FAIL_UNFINISHED;
 	case 1: //measurement ready, expected case
-		DpsClass::Mode oldMode = m_opMode;
+		Mode oldMode = m_opMode;
 		m_opMode = IDLE; //opcode was automatically reseted by DPS310
 		int32_t raw_val;
 		switch (oldMode)
@@ -483,7 +483,7 @@ int16_t DpsClass::setOpMode(uint8_t opMode)
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
-	m_opMode = (DpsClass::Mode)opMode;
+	m_opMode = (Mode)opMode;
 	return DPS__SUCCEEDED;
 }
 
