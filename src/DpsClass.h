@@ -20,8 +20,6 @@
 #include <Wire.h>
 #include "util/dps_config.h"
 
-using namespace dps;
-
 class DpsClass
 {
   public:
@@ -266,7 +264,7 @@ class DpsClass
 	//scaling factor table
 	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
 
-	Mode m_opMode;
+	dps::Mode m_opMode;
 
 	//flags
 	uint8_t m_initFail;

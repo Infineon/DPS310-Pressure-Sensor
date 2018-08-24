@@ -25,7 +25,6 @@ enum Interrupt_source_420_e
 
 namespace dps422
 {
-
 enum Registers_e
 {
     // flags

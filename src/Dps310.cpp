@@ -1,11 +1,14 @@
 #include "Dps310.h"
 
+using namespace dps;
+using namespace dps310;
+
 int16_t Dps310::getContResults(float *tempBuffer,
 							   uint8_t &tempCount,
 							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
-	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer, prsCount, dps310::registers[dps310::FIFO_EMPTY]);
+	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer, prsCount, registers[FIFO_EMPTY]);
 }
 
 int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
@@ -16,16 +19,16 @@ int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 		return DPS__FAIL_UNKNOWN;
 	}
 
-	writeByteBitfield(intr_source & 0x04, dps310::registers[dps310::INT_EN_FIFO]);
-	writeByteBitfield(intr_source & 0x02, dps310::registers[dps310::INT_EN_TEMP]);
-	writeByteBitfield(intr_source & 0x01, dps310::registers[dps310::INT_EN_PRS]);
+	writeByteBitfield(intr_source & 0x04, registers[INT_EN_FIFO]);
+	writeByteBitfield(intr_source & 0x02, registers[INT_EN_TEMP]);
+	writeByteBitfield(intr_source & 0x01, registers[INT_EN_PRS]);
 
-	return writeByteBitfield(polarity, dps310::registers[dps310::INT_HL]);
+	return writeByteBitfield(polarity, registers[INT_HL]);
 }
 
 void Dps310::init(void)
 {
-	int16_t prodId = readByteBitfield(dps310::registers[dps310::PROD_ID]);
+	int16_t prodId = readByteBitfield(registers[PROD_ID]);
 	if (prodId < 0)
 	{
 		//Connected device is not a Dps310
@@ -34,7 +37,7 @@ void Dps310::init(void)
 	}
 	m_productID = prodId;
 
-	int16_t revId = readByteBitfield(dps310::registers[dps310::REV_ID]);
+	int16_t revId = readByteBitfield(registers[REV_ID]);
 	if (revId < 0)
 	{
 		m_initFail = 1U;
@@ -43,7 +46,7 @@ void Dps310::init(void)
 	m_revisionID = revId;
 
 	//find out which temperature sensor is calibrated with coefficients...
-	int16_t sensor = readByteBitfield(dps310::registers[dps310::TEMP_SENSORREC]);
+	int16_t sensor = readByteBitfield(registers[TEMP_SENSORREC]);
 	if (sensor < 0)
 	{
 		m_initFail = 1U;
@@ -52,7 +55,7 @@ void Dps310::init(void)
 
 	//...and use this sensor for temperature measurement
 	m_tempSensor = sensor;
-	if (writeByteBitfield((uint8_t)sensor, dps310::registers[dps310::TEMP_SENSOR]) < 0)
+	if (writeByteBitfield((uint8_t)sensor, registers[TEMP_SENSOR]) < 0)
 	{
 		m_initFail = 1U;
 		return;
@@ -91,7 +94,7 @@ int16_t Dps310::readcoeffs(void)
 	// TODO: remove magic number
 	uint8_t buffer[18];
 	//read COEF registers to buffer
-	int16_t ret = readBlock(dps310::coeffBlock, buffer);
+	int16_t ret = readBlock(coeffBlock, buffer);
 
 	//compose coefficients from buffer content
 	m_c0Half = ((uint32_t)buffer[0] << 4) | (((uint32_t)buffer[1] >> 4) & 0x0F);
@@ -128,11 +131,11 @@ int16_t Dps310::configTemp(uint8_t tempMr, uint8_t tempOsr)
 	//set TEMP SHIFT ENABLE if oversampling rate higher than eight(2^3)
 	if (tempOsr > DPS310__OSR_SE)
 	{
-		ret = writeByteBitfield(1U, dps310::registers[dps310::TEMP_SE]);
+		ret = writeByteBitfield(1U, registers[TEMP_SE]);
 	}
 	else
 	{
-		ret = writeByteBitfield(0U, dps310::registers[dps310::TEMP_SE]);
+		ret = writeByteBitfield(0U, registers[TEMP_SE]);
 	}
 	return ret;
 }
@@ -143,11 +146,11 @@ int16_t Dps310::configPressure(uint8_t prsMr, uint8_t prsOsr)
 	//set PM SHIFT ENABLE if oversampling rate higher than eight(2^3)
 	if (prsOsr > DPS310__OSR_SE)
 	{
-		ret = writeByteBitfield(1U, dps310::registers[dps310::PRS_SE]);
+		ret = writeByteBitfield(1U, registers[PRS_SE]);
 	}
 	else
 	{
-		ret = writeByteBitfield(0U, dps310::registers[dps310::PRS_SE]);
+		ret = writeByteBitfield(0U, registers[PRS_SE]);
 	}
 	return ret;
 }
@@ -166,7 +169,6 @@ float Dps310::calcTemp(int32_t raw)
 	//Calculate compensated temperature
 	temp = m_c0Half + m_c1 * temp;
 
-	//return temperature
 	return temp;
 }
 
@@ -186,5 +188,5 @@ float Dps310::calcPressure(int32_t raw)
 
 int16_t Dps310::flushFIFO()
 {
-	return writeByteBitfield(1U, dps310::registers[dps310::FIFO_FL]);
+	return writeByteBitfield(1U, registers[FIFO_FL]);
 }

@@ -1,4 +1,5 @@
 #include "DpsClass.h"
+using namespace dps;
 
 const int32_t DpsClass::scaling_facts[DPS__NUM_OF_SCAL_FACTS] = {524288, 1572864, 3670016, 7864320, 253952, 516096, 1040384, 2088960};
 
