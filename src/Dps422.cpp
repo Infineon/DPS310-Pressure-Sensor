@@ -6,7 +6,7 @@ int16_t Dps422::measureBothOnce(float &prs, float &temp)
 {
 	setOpMode(CMD_BOTH);
 	delay((calcBusyTime(0U, m_tempOsr) + (calcBusyTime(0U, m_prsOsr)) / DPS__BUSYTIME_SCALING));
-	int16_t rdy = readByteBitfield(registers[PRS_RDY]) & readByteBitfield(registers[TEMP_RDY]);
+	int16_t rdy = readByteBitfield(config_registers[PRS_RDY]) & readByteBitfield(config_registers[TEMP_RDY]);
 	switch (rdy)
 	{
 	case DPS__FAIL_UNKNOWN: //could not read ready flag
@@ -16,58 +16,14 @@ int16_t Dps422::measureBothOnce(float &prs, float &temp)
 		return DPS__FAIL_UNFINISHED;
 	case 1: //measurement ready, expected case
 		m_opMode = IDLE;
-		int32_t raw_val_temp;
-		int32_t raw_val_psr;
-		getRawResult(&raw_val_temp, registerBlocks[TEMP]);
-		getRawResult(&raw_val_psr, registerBlocks[PRS]);
-		prs = calcPressure(raw_val_psr, raw_val_temp);
-		temp = calcTemp(raw_val_temp);
+		int32_t raw_temp;
+		int32_t raw_psr;
+		getRawResult(&raw_temp, registerBlocks[TEMP]);
+		getRawResult(&raw_psr, registerBlocks[PRS]);
+		prs = calcPressure(raw_psr);
+		temp = calcTemp(raw_temp);
 		return DPS__SUCCEEDED; // TODO
 	}
-}
-
-int16_t Dps422::getSingleResult(float &result)
-{
-	int16_t rdy;
-	switch (m_opMode)
-	{
-	case CMD_TEMP: //temperature
-		rdy = readByteBitfield(registers[TEMP_RDY]);
-		break;
-	case CMD_PRS: //pressure
-		rdy = readByteBitfield(registers[PRS_RDY]);
-		break;
-	default: //not in command mode
-		return DPS__FAIL_TOOBUSY;
-	}
-
-	//read new measurement result
-	switch (rdy)
-	{
-	case DPS__FAIL_UNKNOWN: //could not read ready flag
-		return DPS__FAIL_UNKNOWN;
-	case 0: //ready flag not set, measurement still in progress
-		return DPS__FAIL_UNFINISHED;
-	case 1: //measurement ready, expected case
-		DpsClass::Mode oldMode = m_opMode;
-		m_opMode = IDLE; //opcode was automatically reseted by DPS310
-		int32_t raw_val;
-		switch (oldMode)
-		{
-		case CMD_TEMP: //temperature
-			getRawResult(&raw_val, registerBlocks[TEMP]);
-			result = calcTemp(raw_val);
-			last_raw_temp = raw_val;
-			return DPS__SUCCEEDED; // TODO
-		case CMD_PRS:			   //pressure
-			getRawResult(&raw_val, registerBlocks[PRS]);
-			result = calcPressure(raw_val, last_raw_temp);
-			return DPS__SUCCEEDED; // TODO
-		default:
-			return DPS__FAIL_UNKNOWN; //should already be filtered above
-		}
-	}
-	return DPS__FAIL_UNKNOWN;
 }
 
 int16_t Dps422::getContResults(float *tempBuffer,
@@ -75,57 +31,7 @@ int16_t Dps422::getContResults(float *tempBuffer,
 							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
-	// code duplication
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	//abort if device is not in background mode
-	if (!(m_opMode & 0x04))
-	{
-		return DPS__FAIL_TOOBUSY;
-	}
-
-	if (!tempBuffer || !prsBuffer)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-
-	// change
-	uint8_t tempLen = tempCount;
-	uint8_t prsLen = prsCount;
-	tempCount = 0U;
-	prsCount = 0U;
-
-	//while FIFO is not empty
-	while (readByteBitfield(registers[FIFO_EMPTY]) == 0)
-	{
-		int32_t raw_result;
-		float result;
-		//read next result from FIFO
-		int16_t type = getFIFOvalue(&raw_result, registerBlocks[PRS]);
-		switch (type)
-		{
-		case 0: //temperature
-			if (tempCount < tempLen)
-			{
-				result = calcTemp(raw_result);
-				tempBuffer[tempCount++] = result;
-				last_raw_temp = raw_result;
-			}
-			break;
-		case 1: //pressure
-			if (prsCount < prsLen)
-			{
-				result = calcPressure(raw_result, last_raw_temp);
-				prsBuffer[prsCount++] = result;
-			}
-			break;
-		case -1: //read failed
-			break;
-		}
-	}
-	return DPS__SUCCEEDED;
+	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer,prsCount, registers[FIFO_EMPTY]);
 }
 
 int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
@@ -140,25 +46,12 @@ int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 	writeByteBitfield(polarity, registers[INTR_POL]);
 }
 
-int16_t Dps422::getIntStatusFifoFull(void)
-{
-	// This bit should not be polled faster than once per 375 us
-	return readByteBitfield(registers[FIFO_FULL]);
-}
-
-int16_t Dps422::getIntStatusTempReady(void)
-{
-	return readByteBitfield(registers[TEMP_RDY_INTR]);
-}
-
-int16_t Dps422::getIntStatusPrsReady(void)
-{
-	return readByteBitfield(registers[PRS_RDY_INTR]);
-}
-
 ////////   private  /////////
 void Dps422::init(void)
 {
+	// last_raw_temp = 91400; 
+	m_lastTempScal = 0.08716583251; // in case temperature reading disabled, the default raw temperature value correspond the reference temperature of 27 degress.
+	standby();
 	readcoeffs();
 	standby();
 	writeByteBitfield(0x01, registers[MUST_SET]);
@@ -167,55 +60,12 @@ void Dps422::init(void)
 	correctTemp();
 }
 
-int16_t Dps422::setOpMode(uint8_t opMode)
-{
-	if (writeByteBitfield(opMode, registers[MSR_CTRL]) == -1)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	m_opMode = (DpsClass::Mode)opMode;
-	return DPS__SUCCEEDED;
-}
-
-int16_t Dps422::configTemp(uint8_t tempMr, uint8_t tempOsr)
-{
-	tempMr &= 0x07;
-	tempOsr &= 0x07;
-	// two accesses to the same register; for readability
-	int16_t ret = writeByteBitfield(tempMr, registers[TEMP_MR]);
-	ret = writeByteBitfield(tempOsr, registers[TEMP_OSR]);
-
-	//abort immediately on fail
-	if (ret != DPS__SUCCEEDED)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	m_tempMr = tempMr;
-	m_tempOsr = tempOsr;
-}
-
-int16_t Dps422::configPressure(uint8_t prsMr, uint8_t prsOsr)
-{
-	prsMr &= 0x07;
-	prsOsr &= 0x07;
-	int16_t ret = writeByteBitfield(prsMr, registers[PRS_MR]);
-	ret = writeByteBitfield(prsOsr, registers[PRS_OSR]);
-
-	//abort immediately on fail
-	if (ret != DPS__SUCCEEDED)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	m_prsMr = prsMr;
-	m_prsOsr = prsOsr;
-}
-
 int16_t Dps422::readcoeffs(void)
 {
 	uint8_t buffer_temp[3];
 	uint8_t buffer_prs[20];
-	readBlock(registerBlocks[COEF_TEMP], buffer_temp);
-	readBlock(registerBlocks[COEF_PRS], buffer_prs);
+	readBlock(coeffBlocks[COEF_TEMP], buffer_temp);
+	readBlock(coeffBlocks[COEF_PRS], buffer_prs);
 
 	// refer to datasheet
 	// 1. read T_Vbe, T_dVbe and T_gain
@@ -270,37 +120,29 @@ int16_t Dps422::readcoeffs(void)
 	return DPS__SUCCEEDED;
 }
 
-int16_t Dps422::enableFIFO()
+int16_t Dps422::flushFIFO()
 {
-	return writeByteBitfield(1U, registers[FIFO_EN]);
+	return writeByteBitfield(1U, config_registers[FIFO_FL]);
 }
 
-int16_t Dps422::disableFIFO()
-{
-	int16_t ret = writeByteBitfield(1U, registers[FIFO_FL]);
-	if (ret < 0)
-	{
-		return ret;
-	}
-	return writeByteBitfield(0U, registers[FIFO_EN]);
-}
 
 float Dps422::calcTemp(int32_t raw)
 {
-	float t_cal = raw;
-	t_cal /= 1048576;
-	float u = t_cal / (1 + DPS422_ALPHA * t_cal);
+	// float t_cal = raw;
+	// t_cal /= 1048576;
+	m_lastTempScal = (float)raw / 1048576;
+	float u = m_lastTempScal / (1 + DPS422_ALPHA * m_lastTempScal);
 	return (a_prime * u + b_prime);
 }
 
-float Dps422::calcPressure(int32_t raw_prs, int32_t raw_temp)
+float Dps422::calcPressure(int32_t raw_prs)
 {
 	float prs = raw_prs;
 	prs /= scaling_facts[m_prsOsr];
 
-	float tempx = raw_temp;
-	tempx /= 1048576;
-	float temp = (8.5 * tempx) / (1 + 8.8 * tempx);
+	// float tempx = last_raw_temp;
+	// tempx /= 1048576;
+	float temp = (8.5 * m_lastTempScal) / (1 + 8.8 * m_lastTempScal);
 
 	prs = m_c00 + m_c10 * prs + m_c01 * temp + m_c20 * prs * prs + m_c02 * temp * temp + m_c30 * prs * prs * prs +
 		  m_c11 * temp * prs + m_c12 * prs * temp * temp + m_c21 * prs * prs * temp;

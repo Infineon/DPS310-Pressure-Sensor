@@ -1,119 +1,11 @@
 #include "Dps310.h"
 
-int16_t Dps310::getSingleResult(float &result)
-{
-	//abort if initialization failed
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-
-	//read finished bit for current opMode
-	int16_t rdy;
-	switch (m_opMode)
-	{
-	case CMD_TEMP: //temperature
-		rdy = readByteBitfield(registers[TEMP_RDY]);
-		break;
-	case CMD_PRS: //pressure
-		rdy = readByteBitfield(registers[PRS_RDY]);
-		break;
-	default: //DPS310 not in command mode
-		return DPS__FAIL_TOOBUSY;
-	}
-
-	//read new measurement result
-	switch (rdy)
-	{
-	case DPS__FAIL_UNKNOWN: //could not read ready flag
-		return DPS__FAIL_UNKNOWN;
-	case 0: //ready flag not set, measurement still in progress
-		return DPS__FAIL_UNFINISHED;
-	case 1: //measurement ready, expected case
-		DpsClass::Mode oldMode = m_opMode;
-		m_opMode = IDLE; //opcode was automatically reseted by DPS310
-		int32_t raw_val;
-		switch (oldMode)
-		{
-		case CMD_TEMP: //temperature
-			getRawResult(&raw_val, registerBlocks[TEMP]);
-			result = calcTemp(raw_val);
-			return DPS__SUCCEEDED; // TODO
-		case CMD_PRS:			   //pressure
-			getRawResult(&raw_val, registerBlocks[PRS]);
-			result = calcPressure(raw_val);
-			return DPS__SUCCEEDED; // TODO
-		default:
-			return DPS__FAIL_UNKNOWN; //should already be filtered above
-		}
-	}
-	return DPS__FAIL_UNKNOWN;
-}
-
 int16_t Dps310::getContResults(float *tempBuffer,
 							   uint8_t &tempCount,
 							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
-	if (m_initFail)
-	{
-		return DPS__FAIL_INIT_FAILED;
-	}
-	//abort if device is not in background mode
-	if (!(m_opMode & 0x04))
-	{
-		return DPS__FAIL_TOOBUSY;
-	}
-
-	//prepare parameters for buffer length and count
-	uint8_t tempLen = tempCount;
-	uint8_t prsLen = prsCount;
-	tempCount = 0U;
-	prsCount = 0U;
-
-	//while FIFO is not empty
-	while (readByteBitfield(registers[FIFO_EMPTY]) == 0)
-	{
-		int32_t raw_result;
-		float result;
-		//read next result from FIFO
-		int16_t type = getFIFOvalue(&raw_result, registerBlocks[PRS]);
-		switch (type)
-		{
-		case 0: //temperature
-			//calculate compensated pressure value
-			result = calcTemp(raw_result);
-			//if buffer exists and is not full
-			//write result to buffer and increase temperature result counter
-			if (tempBuffer != NULL)
-			{
-				if (tempCount < tempLen)
-				{
-					tempBuffer[tempCount++] = result;
-				}
-			}
-			break;
-		case 1: //pressure
-			//calculate compensated pressure value
-			result = calcPressure(raw_result);
-			//if buffer exists and is not full
-			//write result to buffer and increase pressure result counter
-			if (prsBuffer != NULL)
-			{
-				if (prsCount < prsLen)
-				{
-					prsBuffer[prsCount++] = result;
-				}
-			}
-			break;
-		case -1:   //read failed
-			break; //continue while loop
-				   //if connection failed permanently,
-				   //while condition will become false
-				   //if read failed only once, loop will try again
-		}
-	}
-	return DPS__SUCCEEDED;
+	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer, prsCount, registers[FIFO_EMPTY]);
 }
 
 int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
@@ -129,21 +21,6 @@ int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 	writeByteBitfield(intr_source & 0x01, registers[INT_EN_PRS]);
 
 	return writeByteBitfield(polarity, registers[INT_HL]);
-}
-
-int16_t Dps310::getIntStatusFifoFull(void)
-{
-	return readByteBitfield(registers[INT_FLAG_FIFO]);
-}
-
-int16_t Dps310::getIntStatusTempReady(void)
-{
-	return readByteBitfield(registers[INT_FLAG_TEMP]);
-}
-
-int16_t Dps310::getIntStatusPrsReady(void)
-{
-	return readByteBitfield(registers[INT_FLAG_PRS]);
 }
 
 void Dps310::init(void)
@@ -214,7 +91,7 @@ int16_t Dps310::readcoeffs(void)
 	// TODO: remove magic number
 	uint8_t buffer[18];
 	//read COEF registers to buffer
-	int16_t ret = readBlock(registerBlocks[COEF], buffer);
+	int16_t ret = readBlock(coeffBlock, buffer);
 
 	//compose coefficients from buffer content
 	m_c0Half = ((uint32_t)buffer[0] << 4) | (((uint32_t)buffer[1] >> 4) & 0x0F);
@@ -244,29 +121,9 @@ int16_t Dps310::readcoeffs(void)
 	return DPS__SUCCEEDED;
 }
 
-int16_t Dps310::setOpMode(uint8_t opMode)
-{
-	if (writeByteBitfield(opMode, registers[OPMODE]) == -1)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-	m_opMode = (DpsClass::Mode)opMode;
-	return DPS__SUCCEEDED;
-}
-
 int16_t Dps310::configTemp(uint8_t tempMr, uint8_t tempOsr)
 {
-	tempMr &= 0x07;
-	tempOsr &= 0x07;
-
-	int16_t ret = writeByteBitfield(tempMr, registers[TEMP_MR]);
-	ret = writeByteBitfield(tempOsr, registers[TEMP_OSR]);
-
-	//abort immediately on fail
-	if (ret != DPS__SUCCEEDED)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
+	int16_t ret = DpsClass::configTemp(tempMr, tempOsr);
 
 	//set TEMP SHIFT ENABLE if oversampling rate higher than eight(2^3)
 	if (tempOsr > DPS310__OSR_SE)
@@ -277,39 +134,12 @@ int16_t Dps310::configTemp(uint8_t tempMr, uint8_t tempOsr)
 	{
 		ret = writeByteBitfield(0U, registers[TEMP_SE]);
 	}
-
-	if (ret == DPS__SUCCEEDED)
-	{ //save new settings
-		m_tempMr = tempMr;
-		m_tempOsr = tempOsr;
-	}
-	else
-	{
-		//try to rollback on fail avoiding endless recursion
-		//this is to make sure that shift enable and oversampling rate
-		//are always consistent
-		if (tempMr != m_tempMr || tempOsr != m_tempOsr)
-		{
-			configTemp(m_tempMr, m_tempOsr);
-		}
-	}
 	return ret;
 }
 
 int16_t Dps310::configPressure(uint8_t prsMr, uint8_t prsOsr)
 {
-	prsMr &= 0x07;
-	prsOsr &= 0x07;
-
-	int16_t ret = writeByteBitfield(prsMr, registers[PRS_MR]);
-	ret = writeByteBitfield(prsOsr, registers[PRS_OSR]);
-
-	//abort immediately on fail
-	if (ret != DPS__SUCCEEDED)
-	{
-		return DPS__FAIL_UNKNOWN;
-	}
-
+	int16_t ret = DpsClass::configPressure(prsMr, prsOsr);
 	//set PM SHIFT ENABLE if oversampling rate higher than eight(2^3)
 	if (prsOsr > DPS310__OSR_SE)
 	{
@@ -318,21 +148,6 @@ int16_t Dps310::configPressure(uint8_t prsMr, uint8_t prsOsr)
 	else
 	{
 		ret = writeByteBitfield(0U, registers[PRS_SE]);
-	}
-
-	if (ret == DPS__SUCCEEDED)
-	{ //save new settings
-		m_prsMr = prsMr;
-		m_prsOsr = prsOsr;
-	}
-	else
-	{ //try to rollback on fail avoiding endless recursion
-		//this is to make sure that shift enable and oversampling rate
-		//are always consistent
-		if (prsMr != m_prsMr || prsOsr != m_prsOsr)
-		{
-			configPressure(m_prsMr, m_prsOsr);
-		}
 	}
 	return ret;
 }
@@ -369,17 +184,7 @@ float Dps310::calcPressure(int32_t raw)
 	return prs;
 }
 
-int16_t Dps310::enableFIFO()
+int16_t Dps310::flushFIFO()
 {
-	return writeByteBitfield(1U, registers[FIFO_EN]);
-}
-
-int16_t Dps310::disableFIFO()
-{
-	int16_t ret = writeByteBitfield(1U, registers[FIFO_FL]);
-	if (ret < 0)
-	{
-		return ret;
-	}
-	return writeByteBitfield(0U, registers[FIFO_EN]);
+	return writeByteBitfield(1U, config_registers[FIFO_FL]);
 }

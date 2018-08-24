@@ -19,7 +19,7 @@ void setup()
 void loop()
 {
   int16_t ret = DigitalPressureSensor.measureBothOnce(pressure, temperature);
-  ;
+  
   Serial.println();
 
   if (ret != 0)

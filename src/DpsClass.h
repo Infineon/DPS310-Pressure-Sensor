@@ -14,6 +14,8 @@
 #ifndef DPSCLASS_H_INCLUDED
 #define DPSCLASS_H_INCLUDED
 
+#define NUM_OF_COMMON_REGMASKS 16
+
 #include <SPI.h>
 #include <Wire.h>
 #include "util/dps_consts.h"
@@ -80,11 +82,7 @@ class DpsClass
 	 *
 	 * &result:		reference to a 32-Bit signed Integer value where the result will be written
 	 * 				It will not be written if result==NULL
-	 * returns: 	0 on success
-	 * 				-4 if the DPS310 is could not finish its measurement in time
-	 * 				-3 if the DPS310 is already busy
-	 * 				-2 if the object initialization failed
-	 * 				-1 on other fail
+	 * returns: 	status code
 	 */
 	int16_t measureTempOnce(float &result);
 	/**
@@ -97,20 +95,13 @@ class DpsClass
 	 * 						of the measurement
 	 * 						If this value equals n, the DPS310 will perform
 	 * 						2^n measurements and combine the results
-	 * returns: 			0 on success
-	 * 						-4 if the DPS310 is could not finish its measurement in time
-	 * 						-3 if the DPS310 is already busy
-	 * 						-2 if the object initialization failed
-	 * 						-1 on other fail
+	 * returns: 			status code
 	 */
 	int16_t measureTempOnce(float &result, uint8_t oversamplingRate);
 	/**
 	 * starts a single temperature measurement
 	 *
-	 * returns: 	0 on success
-	 * 				-3 if the DPS310 is already busy
-	 * 				-2 if the object initialization failed
-	 * 				-1 on other fail
+	 * returns: 	status code
 	 */
 	int16_t startMeasureTempOnce(void);
 	/**
@@ -121,10 +112,7 @@ class DpsClass
 	 * 						of the measurement
 	 * 						If this value equals n, the DPS310 will perform
 	 * 						2^n measurements and combine the results
-	 * returns: 			0 on success
-	 * 						-3 if the DPS310 is already busy
-	 * 						-2 if the object initialization failed
-	 * 						-1 on other fail
+	 * returns: 			status code
 	 */
 	int16_t startMeasureTempOnce(uint8_t oversamplingRate);
 	/**
@@ -132,11 +120,7 @@ class DpsClass
 	 *
 	 * &result:		reference to a 32-Bit signed Integer value where the result will be written
 	 * 				It will not be written if result==NULL
-	 * returns: 	0 on success
-	 * 				-4 if the DPS310 is could not finish its measurement in time
-	 * 				-3 if the DPS310 is already busy
-	 * 				-2 if the object initialization failed
-	 * 				-1 on other fail
+	 * returns: 	status code
 	 */
 	int16_t measurePressureOnce(float &result);
 	/**
@@ -149,21 +133,14 @@ class DpsClass
 	 * 						of the measurement
 	 * 						If this value equals n, the DPS310 will perform
 	 * 						2^n measurements and combine the results
-	 * returns: 			0 on success
-	 * 						-4 if the DPS310 is could not finish its measurement in time
-	 * 						-3 if the DPS310 is already busy
-	 * 						-2 if the object initialization failed
-	 * 						-1 on other fail
+	 * returns: 			status code
 	 */
 	int16_t measurePressureOnce(float &result, uint8_t oversamplingRate);
 
 	/**
 	 * starts a single pressure measurement
 	 *
-	 * returns: 	0 on success
-	 * 				-3 if the DPS310 is already busy
-	 * 				-2 if the object initialization failed
-	 * 				-1 on other fail
+	 * returns: 	status code
 	 */
 	int16_t startMeasurePressureOnce(void);
 	/**
@@ -174,23 +151,16 @@ class DpsClass
 	 * 						of the measurement
 	 * 						If this value equals n, the DPS310 will perform
 	 * 						2^n measurements and combine the results
-	 * returns: 			0 on success
-	 * 						-3 if the DPS310 is already busy
-	 * 						-2 if the object initialization failed
-	 * 						-1 on other fail
+	 * returns: 			status code
 	 */
 	int16_t startMeasurePressureOnce(uint8_t oversamplingRate);
 	/**
 	 * gets the result a single temperature or pressure measurement in °C or Pa
 	 *
 	 * &result:		reference to a 32-Bit signed Integer value where the result will be written
-	 * returns: 	0 on success
-	 * 				-4 if the DPS310 is still busy
-	 * 				-3 if the DPS310 is not in command mode
-	 * 				-2 if the object initialization failed
-	 * 				-1 on other fail
+	 * returns: 	status code
 	 */
-	virtual int16_t getSingleResult(float &result) = 0;
+	int16_t getSingleResult(float &result);
 
 	/**
 	 * starts a continuous temperature measurement
@@ -206,11 +176,7 @@ class DpsClass
 	 * 						If this value equals m, the DPS310 will perform
 	 * 						2^m internal measurements and combine the results
 	 * 						to one more exact measurement
-	 * returns: 			0 on success
-	 * 						-4 if measureRate or oversamplingRate is too high
-	 * 						-3 if the DPS310 is already busy
-	 * 						-2 if the object initialization failed
-	 * 						-1 on other fail
+	 * returns: 			status code
 	 * 	NOTE: 				If measure rate is n and oversampling rate is m,
 	 * 						the DPS310 performs 2^(n+m) internal measurements per second.
 	 * 						The DPS310 cannot operate with high precision and high speed
@@ -233,11 +199,7 @@ class DpsClass
 	 * 						If this value equals m, the DPS310 will perform
 	 * 						2^m internal measurements
 	 * 						and combine the results to one more exact measurement
-	 * returns: 			0 on success
-	 * 						-4 if measureRate or oversamplingRate is too high
-	 * 						-3 if the DPS310 is already busy
-	 * 						-2 if the object initialization failed
-	 * 						-1 on other fail
+	 * returns: 			status code
 	 * 	NOTE: 				If measure rate is n and oversampling rate is m,
 	 * 						the DPS310 performs 2^(n+m) internal measurements per second.
 	 * 						The DPS310 cannot operate with high precision and high speed
@@ -255,11 +217,7 @@ class DpsClass
 	 * tempOsr				oversampling rate for temperature
 	 * prsMr				measure rate for pressure
 	 * prsOsr				oversampling rate for pressure
-	 * returns: 			0 on success
-	 * 						-4 if precision or speed is too high
-	 * 						-3 if the DPS310 is already busy
-	 * 						-2 if the object initialization failed
-	 * 						-1 on other fail
+	 * returns: 			status code
 	 * 	NOTE: 				High precision and speed for both temperature and pressure
 	 * 						can not be reached at the same time.
 	 * 						Estimated time for temperature and pressure measurement
@@ -270,37 +228,13 @@ class DpsClass
 	int16_t startMeasureBothCont(uint8_t tempMr, uint8_t tempOsr, uint8_t prsMr, uint8_t prsOsr);
 
 	/**
-	 * Gets the results from continuous measurements and writes them to given arrays
-	 *
-	 * *tempBuffer: 	The start address of the buffer where the temperature results
-	 * 					are written
-	 * 					If this is NULL, no temperature results will be written out
-	 * &tempCount:		This has to be a reference to a number which contains
-	 * 					the size of the buffer for temperature results.
-	 * 					When the function ends, it will contain
-	 * 					the number of bytes written to the buffer
-	 * *prsBuffer: 		The start address of the buffer where the pressure results
-	 * 					are written
-	 * 					If this is NULL, no pressure results will be written out
-	 * &prsCount:		This has to be a reference to a number which contains
-	 * 					the size of the buffer for pressure results.
-	 * 					When the function ends, it will contain
-	 * 					the number of bytes written to the buffer
-	 * returns:			0 on success
-	 * 					-3 if DPS310 is not in background mode
-	 * 					-2 if the object initialization failed
-	 * 					-1 on other fail
-	 */
-	virtual int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount) = 0;
-
-	/**
 	 * Gets the interrupt status flag of the FIFO
 	 *
 	 * Returns: 	1 if the FIFO is full and caused an interrupt
 	 * 				0 if the FIFO is not full or FIFO interrupt is disabled
 	 * 				-1 on fail
 	 */
-	virtual int16_t getIntStatusFifoFull(void) = 0;
+	int16_t getIntStatusFifoFull(void);
 	/**
 	 * Gets the interrupt status flag that indicates a finished temperature measurement
 	 *
@@ -309,7 +243,7 @@ class DpsClass
 	 * 					or interrupts are disabled
 	 * 				-1 on fail
 	 */
-	virtual int16_t getIntStatusTempReady(void) = 0;
+	int16_t getIntStatusTempReady(void);
 	/**
 	 * Gets the interrupt status flag that indicates a finished pressure measurement
 	 *
@@ -318,18 +252,20 @@ class DpsClass
 	 * 					or interrupts are disabled
 	 * 				-1 on fail
 	 */
-	virtual int16_t getIntStatusPrsReady(void) = 0;
+	int16_t getIntStatusPrsReady(void);
 
-    /**
+	/**
 	 * Function to fix a hardware problem on some devices
 	 * You have this problem if you measure a temperature which is too high (e.g. 60°C when temperature is around 20°C)
 	 * Call correctTemp() directly after begin() to fix this issue
 	 */
-    int16_t correctTemp(void);
-	
+	int16_t correctTemp(void);
+
   protected:
 	//scaling factor table
 	static const int32_t scaling_facts[DPS__NUM_OF_SCAL_FACTS];
+
+	/////////////  configuration and registers that are common to 2 existing sensor classes  /////////////
 	//enum for operating mode
 	enum Mode
 	{
@@ -342,6 +278,52 @@ class DpsClass
 		CONT_BOTH = 0x07
 	};
 	Mode m_opMode;
+
+	enum RegisterBlocks_e
+	{
+		PRS = 0, // pressure value
+		TEMP,	// temperature value
+	};
+
+	RegBlock_t registerBlocks[2] = {
+		{0x00, 3},
+		{0x03, 3},
+	};
+
+	/**
+	 * @brief registers for configuration and flags; these are the same for both 310 and 422, might need to be adapted for future sensors
+	 * 
+	 */
+	enum Config_Registers_e
+	{
+		TEMP_MR = 0, // temperature measure rate
+		TEMP_OSR,	// temperature measurement resolution
+		PRS_MR,		 // pressure measure rate
+		PRS_OSR,	 // pressure measurement resolution
+		MSR_CTRL,	// measurement control
+		FIFO_EN,
+
+		TEMP_RDY,
+		PRS_RDY,
+		INT_FLAG_FIFO,
+		INT_FLAG_TEMP,
+		INT_FLAG_PRS,
+	};
+
+	RegMask_t config_registers[NUM_OF_COMMON_REGMASKS] = {
+		{0x07, 0x70, 4}, // TEMP_MR
+		{0x07, 0x07, 0}, // TEMP_OSR
+		{0x06, 0x70, 4}, // PRS_MR
+		{0x06, 0x07, 0}, // PRS_OSR
+		{0x08, 0x07, 0}, // MSR_CTRL
+		{0x09, 0x02, 1}, // FIFO_EN
+
+		{0x08, 0x20, 5}, // TEMP_RDY
+		{0x08, 0x10, 4}, // PRS_RDY
+		{0x0A, 0x04, 2}, // INT_FLAG_FIFO
+		{0x0A, 0x02, 1}, // INT_FLAG_TEMP
+		{0x0A, 0x01, 0}, // INT_FLAG_PRS
+	};
 
 	//flags
 	uint8_t m_initFail;
@@ -365,7 +347,7 @@ class DpsClass
 	int32_t m_c30;
 	//last measured scaled temperature
 	//(necessary for pressure compensation)
-	double m_lastTempScal;
+	float m_lastTempScal;
 
 	//bus specific
 	uint8_t m_SpiI2c; //0=SPI, 1=I2C
@@ -401,7 +383,7 @@ class DpsClass
 	 * You cannot set background to 1 without setting temperature and pressure
 	 * You cannot set both temperature and pressure when background mode is disabled
 	 */
-	virtual int16_t setOpMode(uint8_t opMode) = 0;
+	virtual int16_t setOpMode(uint8_t opMode);
 	/**
 	 * Configures temperature measurement
 	 *
@@ -415,7 +397,7 @@ class DpsClass
 	 * 				so this will be a value from 1 to 128.
 	 * returns: 	0 normally or -1 on fail
 	 */
-	virtual int16_t configTemp(uint8_t temp_mr, uint8_t temp_osr) = 0;
+	virtual int16_t configTemp(uint8_t temp_mr, uint8_t temp_osr);
 	/**
 	 * Configures pressure measurement
 	 *
@@ -429,12 +411,17 @@ class DpsClass
 	 * 				so this will be a value from 1 to 128.
 	 * returns: 	0 normally or -1 on fail
 	 */
-	virtual int16_t configPressure(uint8_t prs_mr, uint8_t prs_osr) = 0;
+	virtual int16_t configPressure(uint8_t prs_mr, uint8_t prs_osr);
 
-	// helper functions to reduce code reuse between classes
-	virtual int16_t enableFIFO() = 0;
-	virtual int16_t disableFIFO() = 0;
+	virtual int16_t flushFIFO() = 0;
 
+	virtual float calcTemp(int32_t raw) = 0;
+
+	virtual float calcPressure(int32_t raw) = 0;
+
+	int16_t enableFIFO();
+
+	int16_t disableFIFO();
 	/**
 	 * calculates the time that the DPS310 needs for 2^mr measurements
 	 * with an oversampling rate of 2^osr (see table "pressure measurement time (ms) versus oversampling rate")
@@ -459,6 +446,28 @@ class DpsClass
 	 * 			1 if result is a pressure raw value
 	 */
 	int16_t getFIFOvalue(int32_t *value, RegBlock_t reg);
+
+	/**
+	 * Gets the results from continuous measurements and writes them to given arrays
+	 *
+	 * *tempBuffer: 	The start address of the buffer where the temperature results
+	 * 					are written
+	 * 					If this is NULL, no temperature results will be written out
+	 * &tempCount:		This has to be a reference to a number which contains
+	 * 					the size of the buffer for temperature results.
+	 * 					When the function ends, it will contain
+	 * 					the number of bytes written to the buffer
+	 * *prsBuffer: 		The start address of the buffer where the pressure results
+	 * 					are written
+	 * 					If this is NULL, no pressure results will be written out
+	 * &prsCount:		This has to be a reference to a number which contains
+	 * 					the size of the buffer for pressure results.
+	 * 					When the function ends, it will contain
+	 * 					the number of bytes written to the buffer
+	 * returns:			status code
+	 */
+	int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount, RegMask_t reg);
+
 	/**
 	 * reads a byte from dps310
 	 *

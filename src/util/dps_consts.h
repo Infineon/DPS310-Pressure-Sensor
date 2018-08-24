@@ -52,6 +52,7 @@
 
 #define DPS__NUM_OF_SCAL_FACTS               8
 
+// status code
 #define DPS__SUCCEEDED                       0
 #define DPS__FAIL_UNKNOWN                    -1
 #define DPS__FAIL_INIT_FAILED                -2
