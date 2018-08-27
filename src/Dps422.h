@@ -35,6 +35,8 @@ public:
    */
   int16_t measureBothOnce(float &prs, float &temp); // might make sense to declare in base class for future sensors
 
+  int16_t measureBothOnce(float &prs, float &temp, uint8_t prs_osr, uint8_t temp_osr);
+
 protected:
   //compensation coefficients (for simplicity use 32 bits)
   float a_prime;

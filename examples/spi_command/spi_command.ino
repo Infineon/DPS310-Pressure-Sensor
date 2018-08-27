@@ -2,14 +2,16 @@
 
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
-float temperature;
-float pressure;
+float temperature = 0;
+float pressure = 0;
+int16_t oversampling = 7;
+int16_t ret;
 
 void setup()
 {
   Serial.begin(9600);
-  while (!Serial);
-
+  while (!Serial)
+    ;
 
   //Call begin to initialize DigitalPressureSensor
   //The parameter pin_nr is the number of the CS pin on your Microcontroller
@@ -18,12 +20,8 @@ void setup()
   Serial.println("Init complete!");
 }
 
-
-
 void loop()
 {
-  int16_t oversampling = 7;
-  int16_t ret;
   Serial.println();
 
   //lets the Dps310 perform a Single temperature measurement with the last (or standard) configuration
@@ -48,7 +46,6 @@ void loop()
     Serial.print(temperature);
     Serial.println(" degrees of Celsius");
   }
-
 
   //ret = DigitalPressureSensor.measurePressureOnce(pressure);
   ret = DigitalPressureSensor.measurePressureOnce(pressure, oversampling);

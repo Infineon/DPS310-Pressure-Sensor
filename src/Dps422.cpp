@@ -7,8 +7,29 @@ using namespace dps422;
 
 int16_t Dps422::measureBothOnce(float &prs, float &temp)
 {
+	measureBothOnce(prs, temp, m_prsOsr, m_tempOsr);
+}
+
+int16_t Dps422::measureBothOnce(float &prs, float &temp, uint8_t prs_osr, uint8_t temp_osr)
+{
+	if (prs_osr != m_prsOsr)
+	{
+		if (configPressure(0U, prs_osr))
+		{
+			return DPS__FAIL_UNKNOWN;
+		}
+	}
+
+	if (temp_osr != m_tempOsr)
+	{
+		if (configPressure(0U, temp_osr))
+		{
+			return DPS__FAIL_UNKNOWN;
+		}
+	}
+
 	setOpMode(CMD_BOTH);
-	delay((calcBusyTime(0U, m_tempOsr) + (calcBusyTime(0U, m_prsOsr)) / DPS__BUSYTIME_SCALING));
+	delay(((calcBusyTime(0U, m_tempOsr) + calcBusyTime(0U, m_prsOsr)) / DPS__BUSYTIME_SCALING));
 	// config_registers defined in namespace dps
 	int16_t rdy = readByteBitfield(config_registers[PRS_RDY]) & readByteBitfield(config_registers[TEMP_RDY]);
 	switch (rdy)

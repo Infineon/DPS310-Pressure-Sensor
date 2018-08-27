@@ -32,6 +32,24 @@ Dps310 DigitalPressureSensor = Dps310();
 Currently DPS422 only works with 2 examples: **i2c_background** and **i2c_command_422**. SPI is yet not enabled for DPS422.
 
 
+## Known Issues
+### Temperature Measurement Issue
+There could be a problem with the fuse bits in the DPS310 with which you are using this library. If your DPS310 indicates a temperature around 60 °C although you expect around room temperature, e.g. 20 °C, please call the function correctTemp() as indicated in the examples to fix this issue.
+Many excuses for any problems arising from this problem.
+In case you need additional help, please do not hesitate to open an issue in this repository.
+
+### SPI with XMC2Go
+SPI mode has only been only tested with XMC1100 boot kit. To put the shield directly onto XMC2Go, add the following line to the top of the sketch:
+```
+#define XMC2GO_SWAP_MOSI_MISO
+``` 
+if your sensor's MISO and MOSI are in different order as the XMC2Go shield. 
+
+However, further trouble shooting is still needed with XMC2Go.
+
+### Interrupt mode
+Interrupt mode not working reliably on XMC2Go for both DPS310 and DPS422.
+
 ## Key Features and Benefits
 * Operation range: Pressure: 300 –1200 hPa. Temperature: -40 – 85 °C.
 * Pressure sensor precision: ± 0.005 hPa (or ±0.05 m) (high precision mode).
@@ -58,12 +76,3 @@ To install the DPS310 pressure sensor library in the Arduino IDE, please go now 
 
 ![Install Library](https://raw.githubusercontent.com/infineon/assets/master/Pictures/Library_Install_ZIP.png)
 
-
-## Known Issues
-### Temperature Measurement Issue
-There could be a problem with the fuse bits in the DPS310 with which you are using this library. If your DPS310 indicates a temperature around 60 °C although you expect around room temperature, e.g. 20 °C, please call the function correctTemp() as indicated in the examples to fix this issue.
-Many excuses for any problems arising from this problem.
-In case you need additional help, please do not hesitate to open an issue in this repository.
-
-### Interrupt mode
-Interrupt mode not working reliably on XMC2Go for both DPS310 and DPS422.
