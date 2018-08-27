@@ -7,10 +7,13 @@ Dps422 DigitalPressureSensor = Dps422();
 Dps310 DigitalPressureSensor = Dps310();
 #endif
 
-unsigned char pressureCount = 20;
-float pressure[pressureCount];
-unsigned char temperatureCount = 20;
-float temperature[temperatureCount];
+#define CONT_MEAS_BUFFER_SIZE 20
+
+float pressure[CONT_MEAS_BUFFER_SIZE];
+float temperature[CONT_MEAS_BUFFER_SIZE];
+
+int8_t temperatureCount = 0;
+int8_t pressureCount = 0;
 
 void setup()
 {

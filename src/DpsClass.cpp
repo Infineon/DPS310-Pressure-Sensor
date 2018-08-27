@@ -116,7 +116,6 @@ int16_t DpsClass::getContResults(float *tempBuffer,
 		return DPS__FAIL_UNKNOWN;
 	}
 
-	// change
 	uint8_t tempLen = tempCount;
 	uint8_t prsLen = prsCount;
 	tempCount = 0U;
