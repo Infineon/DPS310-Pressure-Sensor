@@ -12,8 +12,8 @@ Dps310 DigitalPressureSensor = Dps310();
 float pressure[CONT_MEAS_BUFFER_SIZE];
 float temperature[CONT_MEAS_BUFFER_SIZE];
 
-int8_t temperatureCount = 0;
-int8_t pressureCount = 0;
+uint8_t temperatureCount = 0;
+uint8_t pressureCount = 0;
 
 void setup()
 {
