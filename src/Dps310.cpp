@@ -18,12 +18,7 @@ int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
-
-	writeByteBitfield(intr_source & 0x04, registers[INT_EN_FIFO]);
-	writeByteBitfield(intr_source & 0x02, registers[INT_EN_TEMP]);
-	writeByteBitfield(intr_source & 0x01, registers[INT_EN_PRS]);
-
-	return writeByteBitfield(polarity, registers[INT_HL]);
+	return writeByteBitfield(intr_source, registers[INT_SEL]) || writeByteBitfield(polarity, registers[INT_HL]);
 }
 
 void Dps310::init(void)
@@ -128,6 +123,7 @@ int16_t Dps310::configTemp(uint8_t tempMr, uint8_t tempOsr)
 {
 	int16_t ret = DpsClass::configTemp(tempMr, tempOsr);
 
+	writeByteBitfield(m_tempSensor, registers[TEMP_SENSOR]);
 	//set TEMP SHIFT ENABLE if oversampling rate higher than eight(2^3)
 	if (tempOsr > DPS310__OSR_SE)
 	{

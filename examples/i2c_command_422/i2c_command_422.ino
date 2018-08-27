@@ -1,6 +1,5 @@
 #include <Dps422.h>
 
-// Dps310 Opject
 Dps422 DigitalPressureSensor = Dps422();
 float temperature;
 float pressure;

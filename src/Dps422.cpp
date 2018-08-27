@@ -22,11 +22,11 @@ int16_t Dps422::measureBothOnce(float &prs, float &temp)
 		m_opMode = IDLE;
 		int32_t raw_temp;
 		int32_t raw_psr;
-		getRawResult(&raw_temp, registerBlocks[TEMP]);
-		getRawResult(&raw_psr, registerBlocks[PRS]);
+		if (getRawResult(&raw_temp, registerBlocks[TEMP]) || getRawResult(&raw_psr, registerBlocks[PRS]))
+			return DPS__FAIL_UNKNOWN;
 		prs = calcPressure(raw_psr);
 		temp = calcTemp(raw_temp);
-		return DPS__SUCCEEDED; // TODO
+		return DPS__SUCCEEDED;
 	}
 }
 
@@ -35,7 +35,7 @@ int16_t Dps422::getContResults(float *tempBuffer,
 							   float *prsBuffer,
 							   uint8_t &prsCount)
 {
-	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer,prsCount, registers[FIFO_EMPTY]);
+	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer, prsCount, registers[FIFO_EMPTY]);
 }
 
 int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
@@ -46,8 +46,7 @@ int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 		return DPS__FAIL_UNKNOWN;
 	}
 
-	writeByteBitfield(intr_source, registers[INTR_SEL]);
-	writeByteBitfield(polarity, registers[INTR_POL]);
+	return writeByteBitfield(intr_source, registers[INTR_SEL]) || writeByteBitfield(polarity, registers[INTR_POL]);
 }
 
 ////////   private  /////////
@@ -128,11 +127,8 @@ int16_t Dps422::flushFIFO()
 	return writeByteBitfield(1U, registers[FIFO_FL]);
 }
 
-
 float Dps422::calcTemp(int32_t raw)
 {
-	// float t_cal = raw;
-	// t_cal /= 1048576;
 	m_lastTempScal = (float)raw / 1048576;
 	float u = m_lastTempScal / (1 + DPS422_ALPHA * m_lastTempScal);
 	return (a_prime * u + b_prime);
@@ -143,8 +139,6 @@ float Dps422::calcPressure(int32_t raw_prs)
 	float prs = raw_prs;
 	prs /= scaling_facts[m_prsOsr];
 
-	// float tempx = last_raw_temp;
-	// tempx /= 1048576;
 	float temp = (8.5 * m_lastTempScal) / (1 + 8.8 * m_lastTempScal);
 
 	prs = m_c00 + m_c10 * prs + m_c01 * temp + m_c20 * prs * prs + m_c02 * temp * temp + m_c30 * prs * prs * prs +

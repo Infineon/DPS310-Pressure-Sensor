@@ -2,6 +2,9 @@
 
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
+
+unsigned char pressureCount = 20;
+unsigned char temperatureCount = 20;
 float pressure[pressureCount];
 float temperature[temperatureCount];
 
@@ -11,8 +14,8 @@ void setup()
   int16_t pin_cs = PIN_SPI_SS;
 
   Serial.begin(9600);
-  while (!Serial);
-
+  while (!Serial)
+    ;
 
   //Call begin to initialize Dps310
   //The parameter pin_nr is the number of the CS pin on your Microcontroller
@@ -41,7 +44,6 @@ void setup()
   //int16_t ret = DigitalPressureSensor.startMeasureTempCont(temp_mr, temp_osr);
   //int16_t ret = DigitalPressureSensor.startMeasurePressureCont(prs_mr, prs_osr);
 
-
   if (ret != 0)
   {
     Serial.print("Init FAILED! ret = ");
@@ -53,12 +55,8 @@ void setup()
   }
 }
 
-
-
 void loop()
 {
-  unsigned char pressureCount = 20;
-  unsigned char temperatureCount = 20;
   //This function writes the results of continuous measurements to the arrays given as parameters
   //The parameters temperatureCount and pressureCount should hold the sizes of the arrays temperature and pressure when the function is called
   //After the end of the function, temperatureCount and pressureCount hold the numbers of values written to the arrays

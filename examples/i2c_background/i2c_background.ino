@@ -7,10 +7,16 @@ Dps422 DigitalPressureSensor = Dps422();
 Dps310 DigitalPressureSensor = Dps310();
 #endif
 
+unsigned char pressureCount = 20;
+float pressure[pressureCount];
+unsigned char temperatureCount = 20;
+float temperature[temperatureCount];
+
 void setup()
 {
   Serial.begin(9600);
-  while (!Serial);
+  while (!Serial)
+    ;
 
   //Call begin to initialize DigitalPressureSensor
   //The parameter 0x76 is the bus address. The default address is 0x77 and does not need to be given.
@@ -36,11 +42,6 @@ void setup()
 
 void loop()
 {
-  unsigned char pressureCount = 20;
-  float pressure[pressureCount];
-  unsigned char temperatureCount = 20;
-  float temperature[temperatureCount];
-
   //This function writes the results of continuous measurements to the arrays given as parameters
   //The parameters temperatureCount and pressureCount should hold the sizes of the arrays temperature and pressure when the function is called
   //After the end of the function, temperatureCount and pressureCount hold the numbers of values written to the arrays

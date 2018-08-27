@@ -27,9 +27,7 @@ enum Registers_e
     FIFO_EMPTY,     //FIFO empty
     FIFO_FULL,      //FIFO full
     INT_HL,
-    INT_EN_FIFO, //INT FIFO enable
-    INT_EN_TEMP,
-    INT_EN_PRS,
+    INT_SEL,         //interrupt select
 };
 
 const RegMask_t registers[DPS310_NUM_OF_REGMASKS] = {
@@ -43,9 +41,7 @@ const RegMask_t registers[DPS310_NUM_OF_REGMASKS] = {
     {0x0B, 0x01, 0}, // FIFO_EMPTY
     {0x0B, 0x02, 1}, // FIFO_FULL
     {0x09, 0x80, 7}, // INT_HL
-    {0x09, 0x40, 6}, // INT_EN_FIFO
-    {0x09, 0x20, 5}, // INT_EN_TEMP
-    {0x09, 0x10, 4}, // INT_EN_PRS
+    {0x09, 0x70, 4}, // INT_SEL
 };
 
 const RegBlock_t coeffBlock = {0x10, 18};

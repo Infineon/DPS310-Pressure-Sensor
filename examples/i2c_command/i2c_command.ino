@@ -2,8 +2,9 @@
 
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
-float temperature;
-float pressure;
+float temperature = 0;
+float pressure = 0;
+int16_t ret;
 
 void setup()
 {
@@ -23,7 +24,6 @@ void setup()
 
 void loop()
 {
-  int16_t ret;
   Serial.println();
 
   //ret = DigitalPressureSensor.measureTempOnce(temperature);

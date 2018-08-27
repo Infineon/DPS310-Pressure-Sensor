@@ -128,7 +128,7 @@ int16_t DpsClass::getContResults(float *tempBuffer,
 		int32_t raw_result;
 		float result;
 		//read next result from FIFO
-		int16_t type = getFIFOvalue(&raw_result, registerBlocks[PRS]);
+		int16_t type = getFIFOvalue(&raw_result);
 		switch (type)
 		{
 		case 0: //temperature
@@ -539,15 +539,16 @@ uint16_t DpsClass::calcBusyTime(uint16_t mr, uint16_t osr)
 	return ((uint32_t)20U << mr) + ((uint32_t)16U << (osr + mr));
 }
 
-int16_t DpsClass::getFIFOvalue(int32_t *value, RegBlock_t reg)
+int16_t DpsClass::getFIFOvalue(int32_t *value)
 {
-	bool isPrs = 0;
+	uint8_t buffer[DPS__RESULT_BLOCK_LENGTH] = {0};
+
 	//abort on invalid argument or failed block reading
-	if (value == NULL || getRawResult(value, reg, &isPrs))
-	{
+	if (value == NULL || readBlock(registerBlocks[PRS], buffer) != DPS__RESULT_BLOCK_LENGTH)
 		return DPS__FAIL_UNKNOWN;
-	}
-	return isPrs;
+	*value = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
+	getTwosComplement(value, 24);
+	return buffer[2] & 0x01;
 }
 
 int16_t DpsClass::readByte(uint8_t regAddress)
@@ -787,18 +788,5 @@ int16_t DpsClass::getRawResult(int32_t *raw, RegBlock_t reg)
 
 	*raw = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
 	getTwosComplement(raw, 24);
-	return DPS__SUCCEEDED;
-}
-
-int16_t DpsClass::getRawResult(int32_t *raw, RegBlock_t reg, bool *isPrs)
-{
-	uint8_t buffer[DPS__RESULT_BLOCK_LENGTH] = {0};
-
-	if (readBlock(reg, buffer) != DPS__RESULT_BLOCK_LENGTH)
-		return DPS__FAIL_UNKNOWN;
-	*raw = (uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2];
-
-	getTwosComplement(raw, 24);
-	*isPrs = buffer[2] & 0x01;
 	return DPS__SUCCEEDED;
 }

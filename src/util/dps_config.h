@@ -25,9 +25,11 @@
 #define DPS422__PROD_ID 0x0A
 
 ///////////     common    ///////////
+
 // slave address same for 422 and 310 (to be proved for future sensors)
 #define DPS__STD_SLAVE_ADDRESS 0x77U
 #define DPS__RESULT_BLOCK_LENGTH 3
+#define NUM_OF_COMMON_REGMASKS 16
 
 #define DPS__MEASUREMENT_RATE_1 0
 #define DPS__MEASUREMENT_RATE_2 1
@@ -62,7 +64,10 @@
 namespace dps
 {
 
-//enum for operating mode
+/**
+ * @brief Operating mode.
+ * 
+ */
 enum Mode
 {
     IDLE = 0x00,

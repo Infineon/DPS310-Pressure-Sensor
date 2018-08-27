@@ -14,8 +14,6 @@
 #ifndef DPSCLASS_H_INCLUDED
 #define DPSCLASS_H_INCLUDED
 
-#define NUM_OF_COMMON_REGMASKS 16
-
 #include <SPI.h>
 #include <Wire.h>
 #include "util/dps_config.h"
@@ -29,20 +27,23 @@ class DpsClass
 	~DpsClass(void);
 
 	/**
-	 * I2C begin function for Dps310 with standard address
+	 * I2C begin function with standard address
 	 */
 	void begin(TwoWire &bus);
+
 	/**
 	 * Standard I2C begin function
 	 *
-	 * &bus: 			I2CBus which connects MC to Dps310
-	 * slaveAddress: 	Address of the Dps310 (0x77 or 0x76)
+	 * &bus: 			I2CBus which connects MC to the sensor
+	 * slaveAddress: 	I2C address of the sensor (0x77 or 0x76)
 	 */
 	void begin(TwoWire &bus, uint8_t slaveAddress);
+
 	/**
 	 * SPI begin function for Dps310 with 4-wire SPI
 	 */
 	void begin(SPIClass &bus, int32_t chipSelect);
+
 	/**
 	 * Standard SPI begin function
 	 *
@@ -52,6 +53,7 @@ class DpsClass
 	 * 					0 if Dps310 is connected with 4-wire SPI (standard)
 	 */
 	void begin(SPIClass &bus, int32_t chipSelect, uint8_t threeWire);
+
 	/**
 	 * End function for Dps310
 	 * Sets the sensor to idle mode
@@ -62,6 +64,7 @@ class DpsClass
 	 * returns the Product ID of the connected Dps310 sensor
 	 */
 	uint8_t getProductId(void);
+
 	/**
 	 * returns the Revision ID of the connected Dps310 sensor
 	 */
@@ -70,68 +73,56 @@ class DpsClass
 	/**
 	 * Sets the Dps310 to standby mode
 	 *
-	 * returns:		0 on success
-	 * 				-2 if object initialization failed
-	 * 				-1 on other fail
+	 * returns:		status code
 	 */
 	int16_t standby(void);
 
 	/**
-	 * performs one temperature measurement and writes result to the given address
+	 * performs one temperature measurement
 	 *
-	 * &result:		reference to a 32-Bit signed Integer value where the result will be written
-	 * 				It will not be written if result==NULL
+	 * &result:		reference to a float value where the result will be written
 	 * returns: 	status code
 	 */
 	int16_t measureTempOnce(float &result);
+
 	/**
-	 * performs one temperature measurement and writes result to the given address
-	 * the desired precision can be set with oversamplingRate
+	 * performs one temperature measurement with specified oversamplingRate
 	 *
-	 * &result:				reference to a 32-Bit signed Integer where the result will be written
-	 * 						It will not be written if result==NULL
-	 * oversamplingRate: 	a value from 0 to 7 that decides about the precision
-	 * 						of the measurement
-	 * 						If this value equals n, the DPS310 will perform
-	 * 						2^n measurements and combine the results
+	 * &result:				reference to a float where the result will be written
+	 * oversamplingRate: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128, which are defined as integers 0 - 7
+	 * 						The number of measurements equals to 2^n, if the value written to the register field is n. 2^n internal measurements are combined to return a more exact measurement
 	 * returns: 			status code
 	 */
 	int16_t measureTempOnce(float &result, uint8_t oversamplingRate);
+
 	/**
 	 * starts a single temperature measurement
 	 *
 	 * returns: 	status code
 	 */
 	int16_t startMeasureTempOnce(void);
+
 	/**
-	 * starts a single temperature measurement
-	 * The desired precision can be set with oversamplingRate
+	 * starts a single temperature measurement with specified oversamplingRate
 	 *
-	 * oversamplingRate: 	a value from 0 to 7 that decides about the precision
-	 * 						of the measurement
-	 * 						If this value equals n, the DPS310 will perform
-	 * 						2^n measurements and combine the results
+	 * oversamplingRate: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128, which are defined as integers 0 - 7
 	 * returns: 			status code
 	 */
 	int16_t startMeasureTempOnce(uint8_t oversamplingRate);
+
 	/**
-	 * performs one pressure measurement and writes result to the given address
+	 * performs one pressure measurement
 	 *
-	 * &result:		reference to a 32-Bit signed Integer value where the result will be written
-	 * 				It will not be written if result==NULL
+	 * &result:		reference to a float value where the result will be written
 	 * returns: 	status code
 	 */
 	int16_t measurePressureOnce(float &result);
+
 	/**
-	 * performs one pressure measurement and writes result to the given address
-	 * the desired precision can be set with oversamplingRate
+	 * performs one pressure measurement with specified oversamplingRate
 	 *
-	 * &result:				reference to a 32-Bit signed Integer where the result will be written
-	 * 						It will not be written if result==NULL
-	 * oversamplingRate: 	a value from 0 to 7 that decides about the precision
-	 * 						of the measurement
-	 * 						If this value equals n, the DPS310 will perform
-	 * 						2^n measurements and combine the results
+	 * &result:				reference to a float where the result will be written
+	 * oversamplingRate: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128
 	 * returns: 			status code
 	 */
 	int16_t measurePressureOnce(float &result, uint8_t oversamplingRate);
@@ -142,87 +133,53 @@ class DpsClass
 	 * returns: 	status code
 	 */
 	int16_t startMeasurePressureOnce(void);
+
 	/**
-	 * starts a single pressure measurement
-	 * The desired precision can be set with oversamplingRate
+	 * starts a single pressure measurement with specified oversamplingRate
 	 *
-	 * oversamplingRate: 	a value from 0 to 7 that decides about the precision
-	 * 						of the measurement
-	 * 						If this value equals n, the DPS310 will perform
-	 * 						2^n measurements and combine the results
+	 * oversamplingRate: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128
 	 * returns: 			status code
 	 */
 	int16_t startMeasurePressureOnce(uint8_t oversamplingRate);
+
 	/**
 	 * gets the result a single temperature or pressure measurement in °C or Pa
 	 *
-	 * &result:		reference to a 32-Bit signed Integer value where the result will be written
+	 * &result:		reference to a float value where the result will be written
 	 * returns: 	status code
 	 */
 	int16_t getSingleResult(float &result);
 
 	/**
-	 * starts a continuous temperature measurement
-	 * The desired precision can be set with oversamplingRate
-	 * The desired number of measurements per second can be set with measureRate
-	 *
-	 * measureRate: 		a value from 0 to 7 that decides about
-	 * 						the number of measurements per second
-	 * 						If this value equals n, the DPS310 will perform
-	 * 						2^n measurements per second
-	 * oversamplingRate: 	a value from 0 to 7 that decides about
-	 * 						the precision of the measurements
-	 * 						If this value equals m, the DPS310 will perform
-	 * 						2^m internal measurements and combine the results
-	 * 						to one more exact measurement
+	 * starts a continuous temperature measurement with specified measurement rate and oversampling rate
+	 * If measure rate is n and oversampling rate is m, the DPS310 performs 2^(n+m) internal measurements per second. 
+	 * The DPS310 cannot operate with high precision and high speed at the same time. Consult the datasheet for more information.
+	 * 
+	 * measureRate: 		DPS__MEASUREMENT_RATE_1, DPS__MEASUREMENT_RATE_2,DPS__MEASUREMENT_RATE_4 ... DPS__MEASUREMENT_RATE_128
+	 * oversamplingRate: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128
+	 * 						
 	 * returns: 			status code
-	 * 	NOTE: 				If measure rate is n and oversampling rate is m,
-	 * 						the DPS310 performs 2^(n+m) internal measurements per second.
-	 * 						The DPS310 cannot operate with high precision and high speed
-	 * 						at the same time.
-	 * 						Consult the datasheet for more information.
+	 * 						
 	 */
 	int16_t startMeasureTempCont(uint8_t measureRate, uint8_t oversamplingRate);
 
 	/**
-	 * starts a continuous temperature measurement
-	 * The desired precision can be set with oversamplingRate
-	 * The desired number of measurements per second can be set with measureRate
+	 * starts a continuous temperature measurement with specified measurement rate and oversampling rate
 	 *
-	 * measureRate: 		a value from 0 to 7 that decides about
-	 * 						the number of measurements per second
-	 * 						If this value equals n, the DPS310 will perform
-	 * 						2^n measurements per second
-	 * oversamplingRate: 	a value from 0 to 7 that decides about the precision
-	 * 						of the measurements
-	 * 						If this value equals m, the DPS310 will perform
-	 * 						2^m internal measurements
-	 * 						and combine the results to one more exact measurement
+	 * measureRate: 		DPS__MEASUREMENT_RATE_1, DPS__MEASUREMENT_RATE_2,DPS__MEASUREMENT_RATE_4 ... DPS__MEASUREMENT_RATE_128
+	 * oversamplingRate: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128
 	 * returns: 			status code
-	 * 	NOTE: 				If measure rate is n and oversampling rate is m,
-	 * 						the DPS310 performs 2^(n+m) internal measurements per second.
-	 * 						The DPS310 cannot operate with high precision and high speed
-	 * 						at the same time.
-	 * 						Consult the datasheet for more information.
 	 */
 	int16_t startMeasurePressureCont(uint8_t measureRate, uint8_t oversamplingRate);
 
 	/**
-	 * starts a continuous temperature and pressure measurement
-	 * The desired precision can be set with tempOsr and prsOsr
-	 * The desired number of measurements per second can be set with tempMr and prsMr
+	 * starts a continuous temperature and pressure measurement with specified measurement rate and oversampling rate for temperature and pressure measurement respectvely.
 	 *
 	 * tempMr				measure rate for temperature
 	 * tempOsr				oversampling rate for temperature
 	 * prsMr				measure rate for pressure
 	 * prsOsr				oversampling rate for pressure
 	 * returns: 			status code
-	 * 	NOTE: 				High precision and speed for both temperature and pressure
-	 * 						can not be reached at the same time.
-	 * 						Estimated time for temperature and pressure measurement
-	 * 						is the sum of both values.
-	 * 						This sum must not be more than 1 second.
-	 * 						Consult the datasheet for more information.
 	 */
 	int16_t startMeasureBothCont(uint8_t tempMr, uint8_t tempOsr, uint8_t prsMr, uint8_t prsOsr);
 
@@ -234,22 +191,22 @@ class DpsClass
 	 * 				-1 on fail
 	 */
 	int16_t getIntStatusFifoFull(void);
+
 	/**
 	 * Gets the interrupt status flag that indicates a finished temperature measurement
 	 *
-	 * Returns: 	1 if a finished temperature measurement caused an interrupt
-	 * 				0 if there is no finished temperature measurement
-	 * 					or interrupts are disabled
-	 * 				-1 on fail
+	 * Returns: 	1 if a finished temperature measurement caused an interrupt;
+	 * 				0 if there is no finished temperature measurement or interrupts are disabled;
+	 * 				-1 on fail.
 	 */
 	int16_t getIntStatusTempReady(void);
+
 	/**
 	 * Gets the interrupt status flag that indicates a finished pressure measurement
 	 *
-	 * Returns: 	1 if a finished pressure measurement caused an interrupt
-	 * 				0 if there is no finished pressure measurement
-	 * 					or interrupts are disabled
-	 * 				-1 on fail
+	 * Returns: 	1 if a finished pressure measurement caused an interrupt; 
+	 * 				0 if there is no finished pressure measurement or interrupts are disabled;
+	 * 				-1 on fail.
 	 */
 	int16_t getIntStatusPrsReady(void);
 
@@ -268,6 +225,7 @@ class DpsClass
 
 	//flags
 	uint8_t m_initFail;
+
 	uint8_t m_productID;
 	uint8_t m_revisionID;
 
@@ -276,7 +234,6 @@ class DpsClass
 	uint8_t m_tempOsr;
 	uint8_t m_prsMr;
 	uint8_t m_prsOsr;
-	uint8_t m_tempSensor;
 
 	// compensation coefficients for both dps310 and dps422
 	int32_t m_c00;
@@ -286,13 +243,14 @@ class DpsClass
 	int32_t m_c20;
 	int32_t m_c21;
 	int32_t m_c30;
-	//last measured scaled temperature
-	//(necessary for pressure compensation)
+
+	// last measured scaled temperature (necessary for pressure compensation)
 	float m_lastTempScal;
 
 	//bus specific
 	uint8_t m_SpiI2c; //0=SPI, 1=I2C
-					  //used for I2C
+
+	//used for I2C
 	TwoWire *m_i2cbus;
 	uint8_t m_slaveAddress;
 	//used for SPI
@@ -306,8 +264,9 @@ class DpsClass
 	 * and requires a valid bus initialization.
 	 */
 	virtual void init(void) = 0;
+
 	/**
-	 * reads the compensation coefficients from the DPS310
+	 * reads the compensation coefficients from the sensor
 	 * this is called once from init(), which is called from begin()
 	 *
 	 * returns: 	0 on success, -1 on fail
@@ -315,41 +274,28 @@ class DpsClass
 	virtual int16_t readcoeffs(void) = 0;
 
 	/**
-	 * Sets the Operation Mode of the Dps310
-	 *
-	 * opMode: 			the new OpMode that has to be set
+	 * Sets the Operation Mode of the sensor
+	 * 
+	 * opMode: 			the new OpMode as defined by dps::Mode; CMD_BOTH should not be used for DPS310
 	 * return: 			0 on success, -1 on fail
-	 *
-	 * NOTE!
-	 * You cannot set background to 1 without setting temperature and pressure
-	 * You cannot set both temperature and pressure when background mode is disabled
 	 */
-	virtual int16_t setOpMode(uint8_t opMode);
+	int16_t setOpMode(uint8_t opMode);
+
 	/**
 	 * Configures temperature measurement
 	 *
-	 * tempMr: 	the new measure rate for temperature
-	 * 				This can be a value from 0U to 7U.
-	 * 				Actual measure rate will be 2^tempMr,
-	 * 				so this will be a value from 1 to 128.
-	 * tempOsr: 	the new oversampling rate for temperature
-	 * 				This can be a value from 0U to 7U.
-	 * 				Actual measure rate will be 2^tempOsr,
-	 * 				so this will be a value from 1 to 128.
+	 * temp_mr: 		DPS__MEASUREMENT_RATE_1, DPS__MEASUREMENT_RATE_2,DPS__MEASUREMENT_RATE_4 ... DPS__MEASUREMENT_RATE_128
+	 * temp_osr: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128
+	 * 				
 	 * returns: 	0 normally or -1 on fail
 	 */
 	virtual int16_t configTemp(uint8_t temp_mr, uint8_t temp_osr);
+
 	/**
 	 * Configures pressure measurement
 	 *
-	 * prsMr: 		the new measure rate for pressure
-	 * 				This can be a value from 0U to 7U.
-	 * 				Actual measure rate will be 2^prs_mr,
-	 * 				so this will be a value from 1 to 128.
-	 * prsOs: 	the new oversampling rate for temperature
-	 * 				This can be a value from 0U to 7U.
-	 * 				Actual measure rate will be 2^prsOsr,
-	 * 				so this will be a value from 1 to 128.
+	 * prs_mr: 		DPS__MEASUREMENT_RATE_1, DPS__MEASUREMENT_RATE_2,DPS__MEASUREMENT_RATE_4 ... DPS__MEASUREMENT_RATE_128
+	 * prs_osr: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128
 	 * returns: 	0 normally or -1 on fail
 	 */
 	virtual int16_t configPressure(uint8_t prs_mr, uint8_t prs_osr);
@@ -363,30 +309,28 @@ class DpsClass
 	int16_t enableFIFO();
 
 	int16_t disableFIFO();
+
 	/**
-	 * calculates the time that the DPS310 needs for 2^mr measurements
-	 * with an oversampling rate of 2^osr (see table "pressure measurement time (ms) versus oversampling rate")
-	 *
-	 * mr: 		Measure rate for temperature or pressure
-	 * osr: 	Oversampling rate for temperature or pressure
-	 * returns: time that the DPS310 needs for this measurement
-	 * 			a value of 10000 equals 1 second
-	 * 	NOTE! 	The measurement time for temperature and pressure
-	 * 			in sum must not be more than 1 second!
-	 * 			Timing behavior of pressure and temperature sensors
-	 * 			can be considered as equal.
+	 * calculates the time that the sensor needs for 2^mr measurements with an oversampling rate of 2^osr (see table "pressure measurement time (ms) versus oversampling rate")
+	 * Note that the total measurement time for temperature and pressure must not be more than 1 second.
+	 * Timing behavior of pressure and temperature sensors can be considered the same.
+	 * 
+	 * mr: 		DPS__MEASUREMENT_RATE_1, DPS__MEASUREMENT_RATE_2,DPS__MEASUREMENT_RATE_4 ... DPS__MEASUREMENT_RATE_128
+	 * osr: 	DPS__OVERSAMPLING_RATE_1, DPS__OVERSAMPLING_RATE_2, DPS__OVERSAMPLING_RATE_4 ... DPS__OVERSAMPLING_RATE_128
+	 * returns: time that the sensor needs for this measurement
 	 */
 	uint16_t calcBusyTime(uint16_t temp_rate, uint16_t temp_osr);
 
 	/**
-	 * reads the next raw value from the Dps310 FIFO
+	 * reads the next raw value from the FIFO
 	 *
-	 * value: 	address where the value will be written
+	 * value: 	the raw pressure or temperature value read from the pressure register blocks, where the LSB of PRS_B0 marks wheather the value is a temperatur or a pressure.
+	 * 
 	 * returns:	-1 on fail
 	 * 			0 if result is a temperature raw value
 	 * 			1 if result is a pressure raw value
 	 */
-	int16_t getFIFOvalue(int32_t *value, RegBlock_t reg);
+	int16_t getFIFOvalue(int32_t *value);
 
 	/**
 	 * Gets the results from continuous measurements and writes them to given arrays
@@ -394,61 +338,57 @@ class DpsClass
 	 * *tempBuffer: 	The start address of the buffer where the temperature results
 	 * 					are written
 	 * 					If this is NULL, no temperature results will be written out
-	 * &tempCount:		This has to be a reference to a number which contains
-	 * 					the size of the buffer for temperature results.
-	 * 					When the function ends, it will contain
-	 * 					the number of bytes written to the buffer
+	 * &tempCount:		The size of the buffer for temperature results.
+	 * 					When the function ends, it will contain the number of bytes written to the buffer.
 	 * *prsBuffer: 		The start address of the buffer where the pressure results
 	 * 					are written
 	 * 					If this is NULL, no pressure results will be written out
-	 * &prsCount:		This has to be a reference to a number which contains
-	 * 					the size of the buffer for pressure results.
-	 * 					When the function ends, it will contain
-	 * 					the number of bytes written to the buffer
+	 * &prsCount:		The size of the buffer for pressure results.
+	 * 					When the function ends, it will contain the number of bytes written to the buffer.
 	 * returns:			status code
 	 */
 	int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount, RegMask_t reg);
 
 	/**
-	 * reads a byte from dps310
+	 * reads a byte from the sensor
 	 *
 	 * regAdress: 	Address that has to be read
 	 * returns: 	register content or -1 on fail
 	 */
 	int16_t readByte(uint8_t regAddress);
+
 	/**
-	 * reads a byte from dps310 via SPI
+	 * reads a byte from the sensor via SPI
 	 * this function is automatically called by readByte
-	 * if Dps310 is connected via SPI
+	 * if the sensor is connected via SPI
 	 *
 	 * regAdress: 	Address that has to be read
 	 * returns: 	register content or -1 on fail
 	 */
 	int16_t readByteSPI(uint8_t regAddress);
+
 	/**
-	 * reads a block from dps310
+	 * reads a block from the sensor
 	 *
 	 * regAdress: 	Address that has to be read
 	 * length: 		Length of data block
 	 * buffer: 	Buffer where data will be stored
-	 * returns: 	number of bytes that have been read successfully
-	 * 				NOTE! This is not always equal to length
-	 * 					  due to rx-Buffer overflow etc.
+	 * returns: 	number of bytes that have been read successfully, which might not always equal to length due to rx-Buffer overflow etc.
 	 */
 	int16_t readBlock(RegBlock_t regBlock, uint8_t *buffer);
+
 	/**
-	 * reads a block from dps310 via SPI
+	 * reads a block from the sensor via SPI
 	 *
 	 * regAdress: 	Address that has to be read
 	 * length: 		Length of data block
 	 * readbuffer: 	Buffer where data will be stored
-	 * returns: 	number of bytes that have been read successfully
-	 * 				NOTE! This is not always equal to length
-	 * 					  due to rx-Buffer overflow etc.
+	 * returns: 	number of bytes that have been read successfully, which might not always equal to length due to rx-Buffer overflow etc.
 	 */
 	int16_t readBlockSPI(RegBlock_t regBlock, uint8_t *readbuffer);
+
 	/**
-	 * writes a given byte to a given register of dps310 without checking
+	 * writes a byte to a given register of the sensor without checking
 	 *
 	 * regAdress: 	Address of the register that has to be updated
 	 * data:		Byte that will be written to the register
@@ -456,8 +396,9 @@ class DpsClass
 	 * 				or -1 on fail
 	 */
 	int16_t writeByte(uint8_t regAddress, uint8_t data);
+
 	/**
-	 * writes a given byte to a given register of dps310
+	 * writes a byte to a register of the sensor
 	 *
 	 * regAdress: 	Address of the register that has to be updated
 	 * data:		Byte that will be written to the register
@@ -467,8 +408,9 @@ class DpsClass
 	 * 				or -1 on fail
 	 */
 	int16_t writeByte(uint8_t regAddress, uint8_t data, uint8_t check);
+
 	/**
-	 * writes a given byte to a given register of dps310 via SPI
+	 * writes a byte to a register of the sensor via SPI
 	 *
 	 * regAdress: 	Address of the register that has to be updated
 	 * data:		Byte that will be written to the register
@@ -478,62 +420,54 @@ class DpsClass
 	 * 				or -1 on fail
 	 */
 	int16_t writeByteSpi(uint8_t regAddress, uint8_t data, uint8_t check);
+
 	/**
-	 * updates some given bits of a given register of dps310 without checking
+	 * updates a bit field of the sensor without checking
 	 *
-	 * regAdress: 	Address of the register that has to be updated
+	 * regMask: 	Mask of the register that has to be updated
 	 * data:		BitValues that will be written to the register
-	 * shift:		Amount of bits the data byte is shifted (left) before being masked
-	 * mask: 		Masks the bits of the register that have to be updated
-	 * 				Bits with value 1 are updated
-	 * 				Bits with value 0 are not changed
 	 * return:		0 if byte was written successfully
 	 * 				or -1 on fail
 	 */
 	int16_t writeByteBitfield(uint8_t data, RegMask_t regMask);
+
 	/**
-	 * updates some given bits of a given register of dps310
+	 * updates a bit field of the sensor
 	 *
-	 * regAdress: 	Address of the register that has to be updated
+	 * regMask: 	Mask of the register that has to be updated
 	 * data:		BitValues that will be written to the register
-	 * shift:		Amount of bits the data byte is shifted (left) before being masked
-	 * mask: 		Masks the bits of the register that have to be updated
-	 * 				Bits with value 1 are updated
-	 * 				Bits with value 0 are not changed
-	 * check: 		enables/disables check after writing
-	 * 				0 disables check
+	 * check: 		enables/disables check after writing; 0 disables check.
 	 * 				if check fails, -1 will be returned
 	 * return:		0 if byte was written successfully
 	 * 				or -1 on fail
 	 */
 	int16_t writeByteBitfield(uint8_t data, uint8_t regAddress, uint8_t mask, uint8_t shift, uint8_t check);
+
 	/**
-	 * reads some given bits of a given register of dps310
-	 *
-	 * regAdress: 	Address of the register that has to be updated
-	 * mask: 		Masks the bits of the register that have to be updated
-	 * 				Bits masked with value 1 are read
-	 * 				Bits masked with value 0 are set 0
-	 * shift:		Amount of bits the data byte is shifted (right) after being masked
+	 * reads a bit field from the sensor
+	 * regMask: 	Mask of the register that has to be updated
+	 * data:		BitValues that will be written to the register
 	 * return:		read and processed bits
 	 * 				or -1 on fail
 	 */
 	int16_t readByteBitfield(RegMask_t regMask);
 
-	//this construction recognizes non-32-bit negative numbers
-	//and converts them to 32-bit negative numbers with 2's complement
+	/**
+	 * @brief converts non-32-bit negative numbers to 32-bit negative numbers with 2's complement
+	 * 
+	 * @param raw The raw number of less than 32 bits
+	 * @param length The bit length
+	 */
 	void getTwosComplement(int32_t *raw, uint8_t length);
 
-	int16_t getRawResult(int32_t *raw, RegBlock_t reg);
-
 	/**
-	 * @brief Get the Raw Result object
+	 * @brief Get a raw result from a given register block
 	 * 
-	 * @param raw 
-	 * @param reg 
-	 * @param isPrs 1 if the result is a pressure measurement, 0 is it is a temperature measurement. For DPS310 & DPS422
+	 * @param raw The address where the raw value is to be written
+	 * @param reg The register block to be read from
+	 * @return status code 
 	 */
-	int16_t getRawResult(int32_t *raw, RegBlock_t reg, bool *isPrs);
+	int16_t getRawResult(int32_t *raw, RegBlock_t reg);
 };
 
 #endif //DPSCLASS_H_INCLUDED
