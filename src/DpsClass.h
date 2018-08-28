@@ -335,16 +335,15 @@ class DpsClass
 	/**
 	 * Gets the results from continuous measurements and writes them to given arrays
 	 *
-	 * @param *tempBuffer: 	The start address of the buffer where the temperature results
-	 * 					are written
+	 * @param *tempBuffer: 	The start address of the buffer where the temperature results are written
 	 * 					If this is NULL, no temperature results will be written out
 	 * @param &tempCount:		The size of the buffer for temperature results.
 	 * 					When the function ends, it will contain the number of bytes written to the buffer.
-	 * @param *prsBuffer: 		The start address of the buffer where the pressure results
-	 * 					are written
+	 * @param *prsBuffer: 		The start address of the buffer where the pressure results are written
 	 * 					If this is NULL, no pressure results will be written out
 	 * @param &prsCount:		The size of the buffer for pressure results.
 	 * 					When the function ends, it will contain the number of bytes written to the buffer.
+	 * @param reg The FIFO empty register field; needed since this field is different for each sensor
 	 * @return			status code
 	 */
 	int16_t getContResults(float *tempBuffer, uint8_t &tempCount, float *prsBuffer, uint8_t &prsCount, RegMask_t reg);

@@ -27,6 +27,7 @@
 ///////////     common    ///////////
 
 // slave address same for 422 and 310 (to be proved for future sensors)
+#define DPS__FIFO_SIZE 32
 #define DPS__STD_SLAVE_ADDRESS 0x77U
 #define DPS__RESULT_BLOCK_LENGTH 3
 #define NUM_OF_COMMON_REGMASKS 16

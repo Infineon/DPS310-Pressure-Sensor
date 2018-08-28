@@ -3,43 +3,21 @@
 // Dps310 Opject
 Dps310 DigitalPressureSensor = Dps310();
 
-unsigned char pressureCount = 20;
-unsigned char temperatureCount = 20;
-float pressure[pressureCount];
-float temperature[temperatureCount];
+#define CONT_MEAS_BUFFER_SIZE 20
+float pressure[CONT_MEAS_BUFFER_SIZE];
+float temperature[CONT_MEAS_BUFFER_SIZE];
+uint8_t temperatureCount = 0;
+uint8_t pressureCount = 0;
 
 void setup()
 {
-  //pin number of your slave select line
-  int16_t pin_cs = PIN_SPI_SS;
-
   Serial.begin(9600);
   while (!Serial)
     ;
+  // slave select pin has to be given
+  DigitalPressureSensor.begin(SPI, PIN_SPI_SS);
 
-  //Call begin to initialize Dps310
-  //The parameter pin_nr is the number of the CS pin on your Microcontroller
-  DigitalPressureSensor.begin(SPI, pin_cs);
-
-  //temperature measure rate (value from 0 to 7)
-  //2^temp_mr temperature measurement results per second
-  int16_t temp_mr = 2;
-  //temperature oversampling rate (value from 0 to 7)
-  //2^temp_osr internal temperature measurements per result
-  //A higher value increases precision
-  int16_t temp_osr = 2;
-  //pressure measure rate (value from 0 to 7)
-  //2^prs_mr pressure measurement results per second
-  int16_t prs_mr = 2;
-  //pressure oversampling rate (value from 0 to 7)
-  //2^prs_osr internal pressure measurements per result
-  //A higher value increases precision
-  int16_t prs_osr = 2;
-  //startMeasureBothCont enables background mode
-  //temperature and pressure ar measured automatically
-  //High precision and hgh measure rates at the same time are not available.
-  //Consult Datasheet (or trial and error) for more information
-  int16_t ret = DigitalPressureSensor.startMeasureBothCont(temp_mr, temp_osr, prs_mr, prs_osr);
+  int16_t ret = DigitalPressureSensor.startMeasureBothCont(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_4, DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_4);
   //Use one of the commented lines below instead to measure only temperature or pressure
   //int16_t ret = DigitalPressureSensor.startMeasureTempCont(temp_mr, temp_osr);
   //int16_t ret = DigitalPressureSensor.startMeasurePressureCont(prs_mr, prs_osr);

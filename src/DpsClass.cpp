@@ -115,9 +115,6 @@ int16_t DpsClass::getContResults(float *tempBuffer,
 	{
 		return DPS__FAIL_UNKNOWN;
 	}
-
-	uint8_t tempLen = tempCount;
-	uint8_t prsLen = prsCount;
 	tempCount = 0U;
 	prsCount = 0U;
 
@@ -131,14 +128,14 @@ int16_t DpsClass::getContResults(float *tempBuffer,
 		switch (type)
 		{
 		case 0: //temperature
-			if (tempCount < tempLen)
+			if (tempCount < DPS__FIFO_SIZE)
 			{
 				result = calcTemp(raw_result);
 				tempBuffer[tempCount++] = result;
 			}
 			break;
 		case 1: //pressure
-			if (prsCount < prsLen)
+			if (prsCount < DPS__FIFO_SIZE)
 			{
 				result = calcPressure(raw_result);
 				prsBuffer[prsCount++] = result;
@@ -172,7 +169,6 @@ int16_t DpsClass::getSingleResult(float &result)
 	default: //DPS310 not in command mode
 		return DPS__FAIL_TOOBUSY;
 	}
-
 	//read new measurement result
 	switch (rdy)
 	{
