@@ -2,7 +2,12 @@
  * the example i2c_command_422.ino should be preferred if you want higher accuracy than the default setting. 
 */
 
+// uncomment to use DPS_SPI
+// #define DPS_SPI
+
+// uncomment to use DPS422
 // #define DPS422
+
 #ifdef DPS422
 #include <Dps422.h>
 Dps422 DigitalPressureSensor = Dps422();
@@ -21,12 +26,16 @@ void setup()
   while (!Serial)
     ;
 
+#ifdef DPS_SPI
+  DigitalPressureSensor.begin(SPI, PIN_SPI_SS);
+#else 
   //Call begin to initialize DigitalPressureSensor
   //The parameter 0x76 is the bus address. The default address is 0x77 and does not need to be given.
   //DigitalPressureSensor.begin(Wire, 0x76);
   //Use the commented line below instead of the one above to use the default I2C address.
   //if you are using the Pressure 3 click Board, you need 0x76
   DigitalPressureSensor.begin(Wire);
+#endif
 
   Serial.println("Init complete!");
 }

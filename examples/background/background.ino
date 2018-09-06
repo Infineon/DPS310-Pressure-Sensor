@@ -1,7 +1,16 @@
-#include <Dps310.h>
+// uncomment to use DPS422
+// #define DPS422
 
-// Dps310 Opject
+// uncomment to use DPS_SPI
+// #define DPS_SPI
+
+#ifdef DPS422
+#include <Dps422.h>
+Dps422 DigitalPressureSensor = Dps422();
+#else
+#include <Dps310.h>
 Dps310 DigitalPressureSensor = Dps310();
+#endif
 
 #define CONT_MEAS_BUFFER_SIZE 20
 float pressure[CONT_MEAS_BUFFER_SIZE];
@@ -14,8 +23,16 @@ void setup()
   Serial.begin(9600);
   while (!Serial)
     ;
+#ifdef DPS_SPI
   // slave select pin has to be given
   DigitalPressureSensor.begin(SPI, PIN_SPI_SS);
+#else
+  //Call begin to initialize DigitalPressureSensor
+  //The parameter 0x76 is the bus address. The default address is 0x77 and does not need to be given.
+  //DigitalPressureSensor.begin(Wire, 0x76);
+  //Use the commented line below instead to use the default I2C address.
+  DigitalPressureSensor.begin(Wire);  
+#endif
 
   int16_t ret = DigitalPressureSensor.startMeasureBothCont(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_4, DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_4);
   //Use one of the commented lines below instead to measure only temperature or pressure
@@ -71,5 +88,5 @@ void loop()
   }
 
   //Wait some time, so that the Dps310 can refill its buffer
-  delay(10000);
+  delay(5000);
 }

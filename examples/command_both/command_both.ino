@@ -1,3 +1,8 @@
+/* This mode is new to DPS422 */
+
+// uncomment to use DPS_SPI
+#define DPS_SPI
+
 #include <Dps422.h>
 
 Dps422 DigitalPressureSensor = Dps422();
@@ -10,8 +15,11 @@ void setup()
   while (!Serial)
     ;
 
+#ifdef DPS_SPI
+  DigitalPressureSensor.begin(SPI, PIN_SPI_SS);
+#else 
   DigitalPressureSensor.begin(Wire);
-
+#endif
   Serial.println("Init complete!");
 }
 

@@ -15,8 +15,7 @@ Sensor measurements and calibration coefficients are available through the seria
 ## Usage
 Please follow the example sketches in the /examples directory in this library to learn more about the usage of the library. Especially, take care of the SPI and I²C configuration of the sensor. For more information, please consult the datasheet [here](https://www.infineon.com/dgdl/Infineon-DPS310-DS-v01_00-EN.pdf?fileId=5546d462576f34750157750826c42242).
 
-### Using DPS422
-For different sensor types, the initialization should be adapted, as in example **i2c_background**:
+For different sensor types, the initialization should be adapted, as in example **background**:
 
 ```
 // #define DPS422
@@ -29,8 +28,12 @@ Dps310 DigitalPressureSensor = Dps310();
 #endif
 ```
 
-Currently DPS422 only works with 2 examples: **i2c_background** and **i2c_command_422**. SPI is yet not enabled for DPS422.
-
+Also you can switch between SPI and I2C with this define (by default I2C is used):
+```
+// uncomment to use SPI
+// #define DPS_SPI
+```
+Each sensor can only work either SPI or I2C. To convert from SPI to I2C, for example, you have to re-solder the resistors on the shield.
 
 ## Known Issues
 ### Temperature Measurement Issue
@@ -39,13 +42,10 @@ Many excuses for any problems arising from this problem.
 In case you need additional help, please do not hesitate to open an issue in this repository.
 
 ### SPI with XMC2Go
-SPI mode has only been only tested with XMC1100 boot kit. To put the shield directly onto XMC2Go, add the following line to the top of the sketch:
+If your sensor's MISO and MOSI are in different order as the XMC2Go shield, add the following line to the top of the sketch:
 ```
 #define XMC2GO_SWAP_MOSI_MISO
 ``` 
-if your sensor's MISO and MOSI are in different order as the XMC2Go shield. 
-
-However, further trouble shooting is still needed with XMC2Go.
 
 ### Interrupt mode
 Interrupt mode not working reliably on XMC2Go for both DPS310 and DPS422.

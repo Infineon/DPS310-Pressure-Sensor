@@ -73,13 +73,19 @@ int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 ////////   private  /////////
 void Dps422::init(void)
 {
-	m_lastTempScal = 0.08716583251; // in case temperature reading disabled, the default raw temperature value correspond the reference temperature of 27 degress.
+	// m_lastTempScal = 0.08716583251; // in case temperature reading disabled, the default raw temperature value correspond the reference temperature of 27 degress.
 	standby();
-	readcoeffs();
-	standby();
-	writeByteBitfield(0x01, registers[MUST_SET]);
+	if (readcoeffs() < 0 || writeByteBitfield(0x01, registers[MUST_SET]) < 0)
+	{
+		m_initFail = 1U;
+		return;
+	}
 	configTemp(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
 	configPressure(DPS__MEASUREMENT_RATE_4, DPS__OVERSAMPLING_RATE_8);
+	// get one temperature measurement for pressure compensation
+	float trash;
+	measureTempOnce(trash);
+	standby();
 	correctTemp();
 }
 
