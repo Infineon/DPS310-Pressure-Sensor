@@ -1374,7 +1374,7 @@ int16_t Dps310::readByte(uint8_t regAddress)
 	
 	m_i2cbus->beginTransmission(m_slaveAddress);
 	m_i2cbus->write(regAddress);
-    m_i2cbus->endTransmission(0);
+	m_i2cbus->endTransmission(false);
 	//request 1 byte from slave
 	if(m_i2cbus->requestFrom(m_slaveAddress, 1U, 1U) > 0)
 	{
@@ -1446,7 +1446,7 @@ int16_t Dps310::readBlock(uint8_t regAddress, uint8_t length, uint8_t *buffer)
 	
 	m_i2cbus->beginTransmission(m_slaveAddress);
 	m_i2cbus->write(regAddress);
-    m_i2cbus->endTransmission(0);
+	m_i2cbus->endTransmission(false);
 	//request length bytes from slave
 	int16_t ret = m_i2cbus->requestFrom(m_slaveAddress, length, 1U);
 	//read all received bytes to buffer
