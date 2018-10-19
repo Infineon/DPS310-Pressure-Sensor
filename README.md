@@ -20,17 +20,16 @@ Sensor measurements and calibration coeȄicients are available through the seria
 * Interface: I2C and SPI (both with optional interrupt)
 
 ## Hardware
-Please find the datasheet of the DPS310 [here](https://www.infineon.com/dgdl/Infineon-DPS310-DS-v01_00-EN.pdf?fileId=5546d462576f34750157750826c42242). It depends on the evaluation board which you are using or the respective configuration of the sensor on your PCB (maybe designed by yourself) which communication protocol as well as addresses you need to use for communicating with the sensor.
-Please note that currently no specific evaluation board for Arduino is available by Infineon, but the existing ones can be used together with this library as well as respective wiring.
+Please find the datasheet of the DPS310 [here](https://www.infineon.com/dgdl/Infineon-DPS310-DS-v01_00-EN.pdf?fileId=5546d462576f34750157750826c42242). It depends on the evaluation board which you are using or the respective configuration of the sensor on your PCB which communication protocol as well as addresses you need to use for communicating with the sensor.
 
 ## Installation
 
 ### Integration of Library
-Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository or directly [here](https://github.com/Infineon/DPS310-Pressure-Sensor/releases/download/V1.0.5/DPS310-Pressure-Sensor.zip):
+Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository or directly [here](https://github.com/Infineon/DPS310-Pressure-Sensor/releases/download/V1.0.6/DPS310-Pressure-Sensor.zip):
 
 ![Download Library](https://raw.githubusercontent.com/Infineon/assets/master/Pictures/DL_DPS310_Rel.jpg)
 
-To install the DPS310 pressure sensor library in the Arduino IDE, please go now to **Sketch** > **Include Library** > **Add .ZIP Library...** in the Arduino IDE and navigate to the downloaded .ZIP file of this repository. The library will be installed in your Arduino sketch folder in libraries and you can select as well as include this one to your project under **Sketch** > **Include Library** > **IFX_DPS310**.
+To install the DPS310 pressure sensor library in the Arduino IDE, please go now to **Sketch** > **Include Library** > **Add .ZIP Library...** in the Arduino IDE and navigate to the downloaded .ZIP file of this repository. The library will be installed in your Arduino sketch folder in libraries and you can select as well as include this one to your project under **Sketch** > **Include Library** > **DPS310**.
 
 ![Install Library](https://raw.githubusercontent.com/infineon/assets/master/Pictures/Library_Install_ZIP.png)
 
