@@ -11,6 +11,7 @@ int16_t Dps310::getContResults(float *tempBuffer,
 	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer, prsCount, registers[FIFO_EMPTY]);
 }
 
+#ifndef DPS_DISABLESPI
 int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 {
 	//Interrupts are not supported with 4 Wire SPI
@@ -20,6 +21,7 @@ int16_t Dps310::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 	}
 	return writeByteBitfield(intr_source, registers[INT_SEL]) || writeByteBitfield(polarity, registers[INT_HL]);
 }
+#endif
 
 void Dps310::init(void)
 {
