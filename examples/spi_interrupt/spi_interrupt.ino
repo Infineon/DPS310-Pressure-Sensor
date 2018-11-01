@@ -1,62 +1,57 @@
-
-#ifndef EXT_INTR_0  
-#define EXT_INTR_0 9 // for xmc2g0
-#endif
-
-// uncomment to use SPI
-// #define DPS_SPI
-
-// uncomment to use DPS422
-// #define DPS422
-
-#ifdef DPS422
-#define DPS_FIFO_FULL_INTR DPS422_FIFO_FULL_INTR
-#include <Dps422.h>
-Dps422 DigitalPressureSensor = Dps422();
-#else
-#define DPS_FIFO_FULL_INTR DPS310_FIFO_FULL_INTR
 #include <Dps310.h>
-Dps310 DigitalPressureSensor = Dps310();
-#endif
 
+// Dps310 Opject
+Dps310 Dps310PressureSensor = Dps310();
 
 void onFifoFull();
 
 const unsigned char pressureLength = 50;
 unsigned char pressureCount = 0;
-float pressure[pressureLength];
+int32_t pressure[pressureLength];
 unsigned char temperatureCount = 0;
 const unsigned char temperatureLength = 50;
-float temperature[temperatureLength];
+int32_t temperature[temperatureLength];
+
+
+
 
 void setup()
 {
+  //pin number of your slave select line
+  int16_t pin_cs = SS;
+
   Serial.begin(9600);
   while (!Serial);
-  
-#ifdef DPS_SPI
-  DigitalPressureSensor.begin(SPI, PIN_SPI_SS);
-#else 
-  //Call begin to initialize DigitalPressureSensor
-  //The parameter 0x76 is the bus address. The default address is 0x77 and does not need to be given.
-  //DigitalPressureSensor.begin(Wire, 0x76);
-  //Use the commented line below instead of the one above to use the default I2C address.
-  //if you are using the Pressure 3 click Board, you need 0x76
-  DigitalPressureSensor.begin(Wire);
-#endif
 
-  int16_t ret = DigitalPressureSensor.setInterruptSources(DPS_FIFO_FULL_INTR);
+  //Call begin to initialize Dps310PressureSensor
+  //The third parameter has to be 1 and enables 3-wire SPI interface
+  //This is necessary, because SDO will be used to indicate interrupts
+  //ATTENTION: Make sure you have connected your MISO and MOSI pins right!
+  //  There may NEVER be a direct Connection between MOSI and SDI when 3-wire SPI is enabled
+  //  Otherwise, you will cause shortcuts and seriously damage your equipment.
+  //  For three wire interface, MISO has to be connected to SDI and there hase to be a resistor between MISO and MOSI
+  //  I successfully tested this with a resistor of 1k, but I won't give you any warranty that this works for your equipment too
+  Dps310PressureSensor.begin(SPI, pin_cs, 1);
+
+  //config Dps310 for Interrupts
+  int16_t ret = Dps310PressureSensor.setInterruptPolarity(1);
+  ret = Dps310PressureSensor.setInterruptSources(1, 0, 0);
   //clear interrupt flag by reading
-  DigitalPressureSensor.getIntStatusFifoFull();
+  Dps310PressureSensor.getIntStatusFifoFull();
 
   //initialization of Interrupt for Controller unit
   //SDO pin of Dps310 has to be connected with interrupt pin
-
-  pinMode(EXT_INTR_0, INPUT);
-  attachInterrupt(digitalPinToInterrupt(EXT_INTR_0), onFifoFull, RISING);
+  int16_t interruptPin = 2;
+  pinMode(interruptPin, INPUT);
+  Serial.println(digitalPinToInterrupt(interruptPin));
+  attachInterrupt(digitalPinToInterrupt(interruptPin), onFifoFull, RISING);
 
   //start of a continuous measurement just like before
-  ret = DigitalPressureSensor.startMeasureBothCont(DPS__MEASUREMENT_RATE_8, DPS__MEASUREMENT_RATE_4, DPS__MEASUREMENT_RATE_1, DPS__MEASUREMENT_RATE_8);
+  int16_t temp_mr = 3;
+  int16_t temp_osr = 2;
+  int16_t prs_mr = 1;
+  int16_t prs_osr = 3;
+  ret = Dps310PressureSensor.startMeasureBothCont(temp_mr, temp_osr, prs_mr, prs_osr);
   if (ret != 0)
   {
     Serial.print("Init FAILED! ret = ");
@@ -71,13 +66,14 @@ void setup()
 
 void loop()
 {
+
   //do other stuff
   Serial.println("loop running");
   delay(500);
 
 
   //if result arrays are full
-  //This could also be in the interrupt handler, but it would take too much time for a proper ISR
+  //This could also be in the interrupt handler, but it would take too much time for an interrupt
   if (pressureCount == pressureLength && temperatureCount == temperatureLength)
   {
     //print results
@@ -90,6 +86,7 @@ void loop()
       Serial.print(temperature[i]);
       Serial.println(" degrees of Celsius");
     }
+
     Serial.println();
     Serial.print(pressureCount);
     Serial.println(" pressure values found: ");
@@ -100,28 +97,31 @@ void loop()
     }
     Serial.println();
     Serial.println();
+
     //reset result counters
     pressureCount = 0;
     temperatureCount = 0;
   }
+
 }
 
 
-//interrupt handler
 void onFifoFull()
 {
   //message for debugging
-  // Serial.println("Interrupt handler called");
+  Serial.println("Interrupt handler called");
 
   //clear interrupt flag by reading
-  DigitalPressureSensor.getIntStatusFifoFull();
+  Dps310PressureSensor.getIntStatusFifoFull();
 
   //calculate the number of free indexes in the result arrays
   unsigned char prs_freespace = pressureLength - pressureCount;
   unsigned char temp_freespace = temperatureLength - temperatureCount;
   //read the results from Dps310, new results will be added at the end of the arrays
-  DigitalPressureSensor.getContResults(&temperature[temperatureCount], temp_freespace, &pressure[pressureCount], prs_freespace);
+  Dps310PressureSensor.getContResults(&temperature[temperatureCount], temp_freespace, &pressure[pressureCount], prs_freespace);
   //after reading the result counters are increased by the amount of new results
   pressureCount += prs_freespace;
   temperatureCount += temp_freespace;
+
+
 }
