@@ -14,9 +14,12 @@
 #ifndef DPSCLASS_H_INCLUDED
 #define DPSCLASS_H_INCLUDED
 
+#ifndef DPS_DISABLESPI
 #include <SPI.h>
+#endif
 #include <Wire.h>
 #include "util/dps_config.h"
+#include <Arduino.h>
 
 class DpsClass
 {
@@ -39,11 +42,14 @@ class DpsClass
 	 */
 	void begin(TwoWire &bus, uint8_t slaveAddress);
 
+#ifndef DPS_DISABLESPI
 	/**
 	 * SPI begin function for Dps310 with 4-wire SPI
 	 */
 	void begin(SPIClass &bus, int32_t chipSelect);
+#endif
 
+#ifndef DPS_DISABLESPI
 	/**
 	 * Standard SPI begin function
 	 *
@@ -53,6 +59,7 @@ class DpsClass
 	 * 					0 if Dps310 is connected with 4-wire SPI (standard)
 	 */
 	void begin(SPIClass &bus, int32_t chipSelect, uint8_t threeWire);
+#endif
 
 	/**
 	 * End function for Dps310
@@ -253,11 +260,13 @@ class DpsClass
 	//used for I2C
 	TwoWire *m_i2cbus;
 	uint8_t m_slaveAddress;
+
+#ifndef DPS_DISABLESPI
 	//used for SPI
 	SPIClass *m_spibus;
 	int32_t m_chipSelect;
 	uint8_t m_threeWire;
-
+#endif
 	/**
 	 * Initializes the sensor.
 	 * This function has to be called from begin()
@@ -356,6 +365,7 @@ class DpsClass
 	 */
 	int16_t readByte(uint8_t regAddress);
 
+#ifndef DPS_DISABLESPI
 	/**
 	 * reads a byte from the sensor via SPI
 	 * this function is automatically called by readByte
@@ -365,7 +375,7 @@ class DpsClass
 	 * @return 	register content or -1 on fail
 	 */
 	int16_t readByteSPI(uint8_t regAddress);
-
+#endif
 	/**
 	 * reads a block from the sensor
 	 *
@@ -376,6 +386,7 @@ class DpsClass
 	 */
 	int16_t readBlock(RegBlock_t regBlock, uint8_t *buffer);
 
+#ifndef DPS_DISABLESPI
 	/**
 	 * reads a block from the sensor via SPI
 	 *
@@ -385,7 +396,7 @@ class DpsClass
 	 * @return 	number of bytes that have been read successfully, which might not always equal to length due to rx-Buffer overflow etc.
 	 */
 	int16_t readBlockSPI(RegBlock_t regBlock, uint8_t *readbuffer);
-
+#endif
 	/**
 	 * writes a byte to a given register of the sensor without checking
 	 *
@@ -408,6 +419,7 @@ class DpsClass
 	 */
 	int16_t writeByte(uint8_t regAddress, uint8_t data, uint8_t check);
 
+#ifndef DPS_DISABLESPI
 	/**
 	 * writes a byte to a register of the sensor via SPI
 	 *
@@ -419,6 +431,7 @@ class DpsClass
 	 * 				or -1 on fail
 	 */
 	int16_t writeByteSpi(uint8_t regAddress, uint8_t data, uint8_t check);
+#endif
 
 	/**
 	 * updates a bit field of the sensor without checking
