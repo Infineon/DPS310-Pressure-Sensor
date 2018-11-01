@@ -39,11 +39,14 @@ void DpsClass::begin(TwoWire &bus, uint8_t slaveAddress)
 	init();
 }
 
+#ifndef DPS_DISABLESPI
 void DpsClass::begin(SPIClass &bus, int32_t chipSelect)
 {
 	begin(bus, chipSelect, 0U);
 }
+#endif
 
+#ifndef DPS_DISABLESPI
 void DpsClass::begin(SPIClass &bus, int32_t chipSelect, uint8_t threeWire)
 {
 	//this flag will show if the initialization was successful
@@ -78,6 +81,7 @@ void DpsClass::begin(SPIClass &bus, int32_t chipSelect, uint8_t threeWire)
 
 	init();
 }
+#endif
 
 void DpsClass::end(void)
 {
@@ -548,15 +552,17 @@ int16_t DpsClass::getFIFOvalue(int32_t *value)
 
 int16_t DpsClass::readByte(uint8_t regAddress)
 {
+	#ifndef DPS_DISABLESPI
 	//delegate to specialized function if Dps310 is connected via SPI
 	if (m_SpiI2c == 0)
 	{
 		return readByteSPI(regAddress);
 	}
+	#endif
 
 	m_i2cbus->beginTransmission(m_slaveAddress);
 	m_i2cbus->write(regAddress);
-	m_i2cbus->endTransmission(0);
+	m_i2cbus->endTransmission(false);
 	//request 1 byte from slave
 	if (m_i2cbus->requestFrom(m_slaveAddress, 1U, 1U) > 0)
 	{
@@ -568,6 +574,7 @@ int16_t DpsClass::readByte(uint8_t regAddress)
 	}
 }
 
+#ifndef DPS_DISABLESPI
 int16_t DpsClass::readByteSPI(uint8_t regAddress)
 {
 	//this function is only made for communication via SPI
@@ -594,7 +601,9 @@ int16_t DpsClass::readByteSPI(uint8_t regAddress)
 	//return received data
 	return ret;
 }
+#endif
 
+#ifndef DPS_DISABLESPI
 int16_t DpsClass::readBlockSPI(RegBlock_t regBlock, uint8_t *buffer)
 {
 	//this function is only made for communication via SPI
@@ -631,6 +640,7 @@ int16_t DpsClass::readBlockSPI(RegBlock_t regBlock, uint8_t *buffer)
 	//return received data
 	return regBlock.length;
 }
+#endif
 
 int16_t DpsClass::writeByte(uint8_t regAddress, uint8_t data)
 {
@@ -639,11 +649,13 @@ int16_t DpsClass::writeByte(uint8_t regAddress, uint8_t data)
 
 int16_t DpsClass::writeByte(uint8_t regAddress, uint8_t data, uint8_t check)
 {
+	#ifndef DPS_DISABLESPI
 	//delegate to specialized function if Dps310 is connected via SPI
 	if (m_SpiI2c == 0)
 	{
 		return writeByteSpi(regAddress, data, check);
 	}
+	#endif
 	m_i2cbus->beginTransmission(m_slaveAddress);
 	m_i2cbus->write(regAddress);		  //Write Register number to buffer
 	m_i2cbus->write(data);				  //Write data to buffer
@@ -666,6 +678,7 @@ int16_t DpsClass::writeByte(uint8_t regAddress, uint8_t data, uint8_t check)
 	}
 }
 
+#ifndef DPS_DISABLESPI
 int16_t DpsClass::writeByteSpi(uint8_t regAddress, uint8_t data, uint8_t check)
 {
 	//this function is only made for communication via SPI
@@ -710,6 +723,7 @@ int16_t DpsClass::writeByteSpi(uint8_t regAddress, uint8_t data, uint8_t check)
 		return DPS__FAIL_UNKNOWN;
 	}
 }
+#endif
 
 int16_t DpsClass::writeByteBitfield(uint8_t data, RegMask_t regMask)
 {
@@ -743,11 +757,13 @@ int16_t DpsClass::readByteBitfield(RegMask_t regMask)
 
 int16_t DpsClass::readBlock(RegBlock_t regBlock, uint8_t *buffer)
 {
+	#ifndef DPS_DISABLESPI
 	//delegate to specialized function if Dps310 is connected via SPI
 	if (m_SpiI2c == 0)
 	{
 		return readBlockSPI(regBlock, buffer);
 	}
+	#endif
 	//do not read if there is no buffer
 	if (buffer == NULL)
 	{
@@ -756,7 +772,7 @@ int16_t DpsClass::readBlock(RegBlock_t regBlock, uint8_t *buffer)
 
 	m_i2cbus->beginTransmission(m_slaveAddress);
 	m_i2cbus->write(regBlock.regAddress);
-	m_i2cbus->endTransmission(0);
+	m_i2cbus->endTransmission(false);
 	//request length bytes from slave
 	int16_t ret = m_i2cbus->requestFrom(m_slaveAddress, regBlock.length, 1U);
 	//read all received bytes to buffer
