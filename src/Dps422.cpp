@@ -59,6 +59,7 @@ int16_t Dps422::getContResults(float *tempBuffer,
 	return DpsClass::getContResults(tempBuffer, tempCount, prsBuffer, prsCount, registers[FIFO_EMPTY]);
 }
 
+#ifndef DPS_DISABLESPI
 int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 {
 	// Intrrupt only supported by I2C or 3-Wire SPI
@@ -69,6 +70,7 @@ int16_t Dps422::setInterruptSources(uint8_t intr_source, uint8_t polarity)
 
 	return writeByteBitfield(intr_source, registers[INTR_SEL]) || writeByteBitfield(polarity, registers[INTR_POL]);
 }
+#endif
 
 ////////   private  /////////
 void Dps422::init(void)
