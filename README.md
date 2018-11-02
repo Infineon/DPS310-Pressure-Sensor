@@ -43,8 +43,10 @@ Currently, there exists the DPS310 Pressure Shield2Go evaluation board as a brea
 * [DPS310 Pressure Shield2Go](https://www.infineon.com/cms/de/product/evaluation-boards/s2go-pressure-dps310/)
 
 ### DPS310 Pressure Shield2Go
-The DPS310 Pressure Shield2Go is a standalone break out board with Infineon's Shield2Go formfactor and pin out. You can connect it easily to any microcontroller of your choice which is Arduino compatible and has 3.3V logic level (please note that the Arduino UNO has 5V logic level and cannot be used without level shifting).
-Each sensor can only work either SPI or I2C. To convert from SPI to I2C, for example, you have to re-solder the resistors on the shield.
+The DPS310 Pressure Shield2Go is a standalone break out board with Infineon's Shield2Go formfactor and pin out. You can connect it easily to any microcontroller of your choice which is Arduino compatible and has 3.3 V logic level (please note that the Arduino UNO has 5 V logic level and cannot be used without level shifting).
+Please consult the [wiki](https://github.com/Infineon/DPS310-Pressure-Sensor/wiki) for additional details about the board.
+
+Each sensor can only work either SPI or I2C. To convert from SPI to I2C, for example, you have to re-solder the resistors on the Shield2Go. Please take care that every Shield2Go for the DPS310 is shipped as I2C configuration right now.
 
 * [Link](https://github.com/Infineon/DPS310-Pressure-Sensor/wiki) to the wiki with more information
 
@@ -63,5 +65,4 @@ In case you need additional help, please do not hesitate to open an issue in thi
 Interrupt mode not working reliably on XMC2Go for DPS310 right now.
 
 ### Additional Information
-Please find the datasheet of the DPS310 [here](https://www.infineon.com/dgdl/Infineon-DPS310-DS-v01_00-EN.pdf?fileId=5546d462576f34750157750826c42242). It depends on the evaluation board which you are using or the respective configuration of the sensor on your PCB (maybe designed by yourself) which communication protocol as well as addresses you need to use for communicating with the sensor.
-Please note that currently no specific evaluation board for Arduino is available by Infineon, but the existing ones can be used together with this library as well as respective wiring.
+Please find the datasheet of the DPS310 [here](https://www.infineon.com/dgdl/Infineon-DPS310-DS-v01_00-EN.pdf?fileId=5546d462576f34750157750826c42242). It depends on the evaluation board which you are using or the respective configuration of the sensor on your PCB which communication protocol as well as addresses you need to use for communicating with the sensor.
