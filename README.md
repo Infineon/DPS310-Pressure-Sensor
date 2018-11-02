@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor.svg?branch=master)](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor)
 
-<img src="https://github.com/Infineon/Assets/blob/master/Pictures/DPS310_PP.jpg" width=100><img src="https://github.com/Infineon/Assets/blob/master/Pictures/DPS310-Pressure-Shield2Go_Top_web.png_2070606871.png" width=200>
+<img src="https://github.com/Infineon/Assets/blob/master/Pictures/DPS310_PP.jpg" width=150><img src="https://github.com/Infineon/Assets/blob/master/Pictures/DPS310-Pressure-Shield2Go_Top_web.png_2070606871.png" width=300>
 
 Library of Infineon's highly sensitive [DPS310 sensor](https://www.infineon.com/cms/de/product/sensor/capacitive-pressure-sensor-for-consumer-applications/DPS310/productType.html?productType=5546d462525dbac4015312b96a743801) for Arduino.
 
