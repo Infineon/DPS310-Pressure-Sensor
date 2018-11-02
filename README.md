@@ -18,10 +18,10 @@ Sensor measurements and calibration coefficients are available through the seria
 * Relative accuracy ±0.06hPa
 * Pressure temperature sensitivity of 0.5Pa/K
 * Temperature accuracy  ±0.5C°
-
-* Wearable applications, sport and fitness activities tracking
-* Drones automatic pilot, fix point flying
-* Indoor navigation, altitude metering
+* Applications
+  * Wearable applications, sport and fitness activities tracking
+  * Drones automatic pilot, fix point flying
+  * Indoor navigation, altitude metering
 
 ## Installation
 
