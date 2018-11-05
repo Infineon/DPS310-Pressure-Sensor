@@ -1,4 +1,4 @@
-# Digital-Pressure-Sensor
+# DPS310 Digital-Pressure-Sensor
 
 [![Build Status](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor.svg?branch=master)](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor)
 
