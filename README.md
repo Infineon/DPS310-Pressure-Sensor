@@ -26,7 +26,7 @@ Sensor measurements and calibration coefficients are available through the seria
 ## Installation
 
 ### Integration of Library
-Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository or directly [here](https://github.com/Infineon/DPS310-Pressure-Sensor/releases/download/V1.0.5/DPS310-Pressure-Sensor.zip):
+Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository:
 
 ![Download Library](https://raw.githubusercontent.com/infineon/assets/master/Pictures/Releases_Generic.jpg)
 
