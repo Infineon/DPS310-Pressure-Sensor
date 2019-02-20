@@ -5,8 +5,8 @@ python:
 sudo: required
         
 branches:
-  only:
-    - master
+      - master
+      - dps310
 
 env:
     global:
