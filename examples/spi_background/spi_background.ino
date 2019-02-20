@@ -6,7 +6,10 @@ Dps310 Dps310PressureSensor = Dps310();
 void setup()
 {
   //pin number of your slave select line
-  int16_t pin_cs = SS;
+  //XMC2GO
+  int16_t pin_cs = 3;
+  //for XMC 1100 Bootkit  & XMC4700 Relax Kit uncomment the following line
+  //int16_t pin_cs = 10;
 
   Serial.begin(9600);
   while (!Serial);
