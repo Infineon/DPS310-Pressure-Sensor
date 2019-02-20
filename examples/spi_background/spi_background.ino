@@ -55,10 +55,10 @@ void setup()
 
 void loop()
 {
-  unsigned char pressureCount = 20;
-  int32_t pressure[pressureCount];
-  unsigned char temperatureCount = 20;
-  int32_t temperature[temperatureCount];
+  uint8_t pressureCount = 20;
+  float pressure[pressureCount];
+  uint8_t temperatureCount = 20;
+  float temperature[temperatureCount];
 
   //This function writes the results of continuous measurements to the arrays given as parameters
   //The parameters temperatureCount and pressureCount should hold the sizes of the arrays temperature and pressure when the function is called

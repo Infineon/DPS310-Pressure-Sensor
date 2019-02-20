@@ -7,10 +7,10 @@ void onFifoFull();
 
 const unsigned char pressureLength = 50;
 unsigned char pressureCount = 0;
-int32_t pressure[pressureLength];
+float pressure[pressureLength];
 unsigned char temperatureCount = 0;
 const unsigned char temperatureLength = 50;
-int32_t temperature[temperatureLength];
+float temperature[temperatureLength];
 
 
 
@@ -34,8 +34,8 @@ void setup()
   Dps310PressureSensor.begin(SPI, pin_cs, 1);
 
   //config Dps310 for Interrupts
-  int16_t ret = Dps310PressureSensor.setInterruptPolarity(1);
-  ret = Dps310PressureSensor.setInterruptSources(1, 0, 0);
+//  int16_t ret = Dps310PressureSensor.setInterruptPolarity(1);
+  int16_t ret = Dps310PressureSensor.setInterruptSources(1, 0);
   //clear interrupt flag by reading
   Dps310PressureSensor.getIntStatusFifoFull();
 
@@ -115,8 +115,8 @@ void onFifoFull()
   Dps310PressureSensor.getIntStatusFifoFull();
 
   //calculate the number of free indexes in the result arrays
-  unsigned char prs_freespace = pressureLength - pressureCount;
-  unsigned char temp_freespace = temperatureLength - temperatureCount;
+  uint8_t prs_freespace = pressureLength - pressureCount;
+  uint8_t temp_freespace = temperatureLength - temperatureCount;
   //read the results from Dps310, new results will be added at the end of the arrays
   Dps310PressureSensor.getContResults(&temperature[temperatureCount], temp_freespace, &pressure[pressureCount], prs_freespace);
   //after reading the result counters are increased by the amount of new results
