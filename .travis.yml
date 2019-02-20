@@ -6,7 +6,7 @@ sudo: required
         
 branches:
   only:
-    - dps422-2
+    - master
 
 env:
     global:
