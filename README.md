@@ -7,6 +7,7 @@
 Library of Infineon's highly sensitive [DPS310 sensor](https://www.infineon.com/cms/de/product/sensor/capacitive-pressure-sensor-for-consumer-applications/DPS310/productType.html?productType=5546d462525dbac4015312b96a743801) for Arduino.
 
 ## Summary
+
 The [DPS310](https://www.infineon.com/dgdl/Infineon-DPS310-DS-v01_00-EN.pdf?fileId=5546d462576f34750157750826c42242) is a miniaturized digital barometric air pressure sensor with a high accuracy and a low current consumption, capable of measuring both pressure and temperature. The internal signal processor converts the output from the pressure and temperature sensor elements to 24 bit results. Each unit is individually calibrated, the calibration coefficients calculated during this process are stored in the calibration registers. The available raw data of the sensor can be calibrated by using the pre-calibrated coefficients as they are used in the application to convert the measurement results to high accuracy pressure and temperature values.
 
 Sensor measurements and calibration coefficients are available through the serial I2C or SPI interface.
@@ -26,6 +27,7 @@ Sensor measurements and calibration coefficients are available through the seria
 ## Installation
 
 ### Integration of Library
+
 Please download this repository from GitHub by clicking on the following field in the latest [release](https://github.com/Infineon/DPS310-Pressure-Sensor/releases) of this repository:
 
 ![Download Library](https://raw.githubusercontent.com/infineon/assets/master/Pictures/Releases_Generic.jpg)
