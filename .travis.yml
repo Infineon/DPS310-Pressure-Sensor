@@ -22,22 +22,17 @@ env:
         - PLATFORMIO_CI_SRC=examples/spi_command
         - PLATFORMIO_CI_SRC=examples/spi_interrupt
 
+before_install:
+  - python3 -m pip install -U coverage codecov mypy
+
 install:
-    # build with stable core
-    
+    # build with stable core    
     - pip install -U platformio
     - platformio platform install -f infineonxmc
 
 script:
-    - platformio ci --lib="." --board=xmc1100_xmc2go --board=xmc1100_boot_kit --board=xmc4700_relax_kit --board=uno --board nodemcuv2
+    - python3 -m coverage run platformio ci --lib="." --board=xmc1100_xmc2go --board=xmc1100_boot_kit --board=xmc4700_relax_kit --board=uno --board nodemcuv2
 
 after_success:
-    # only build once (after one job by checking id, however this does not work reliably)
-    - |
-      if [ $(($TRAVIS_JOB_ID - $TRAVIS_BUILD_ID)) -eq 2 ]; then
-        export REPO_NAME=${TRAVIS_REPO_SLUG#*/}
-        git clone https://github.com/Infineon/InfineonDoxyGenerator.git
-        cd InfineonDoxyGenerator/docs
-        chmod +x publish_pdf.sh
-        ./publish_pdf.sh
-      fi
+  - codecov
+
