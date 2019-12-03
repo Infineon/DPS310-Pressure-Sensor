@@ -15,12 +15,12 @@ env:
    
        
     matrix:
-        - PLATFORMIO_CI_SRC=examples/i2c_background
-        - PLATFORMIO_CI_SRC=examples/i2c_command
-        - PLATFORMIO_CI_SRC=examples/i2c_interrupt
-        - PLATFORMIO_CI_SRC=examples/spi_background
-        - PLATFORMIO_CI_SRC=examples/spi_command
-        - PLATFORMIO_CI_SRC=examples/spi_interrupt
+        - python3 -m coverage run PLATFORMIO_CI_SRC=examples/i2c_background
+        - python3 -m coverage run PLATFORMIO_CI_SRC=examples/i2c_command
+        - python3 -m coverage run PLATFORMIO_CI_SRC=examples/i2c_interrupt
+        - python3 -m coverage run PLATFORMIO_CI_SRC=examples/spi_background
+        - python3 -m coverage run PLATFORMIO_CI_SRC=examples/spi_command
+        - python3 -m coverage run PLATFORMIO_CI_SRC=examples/spi_interrupt
 
 before_install:
   - python3 -m pip install -U coverage codecov mypy
