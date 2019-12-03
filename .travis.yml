@@ -32,6 +32,7 @@ install:
 
 script:
     -  platformio ci coverage run --lib="."  --board=xmc1100_xmc2go --board=xmc1100_boot_kit --board=xmc4700_relax_kit --board=uno --board nodemcuv2
+    -  python3 -m coverage run -- branch -m examples/
 
 after_success:
   - codecov
