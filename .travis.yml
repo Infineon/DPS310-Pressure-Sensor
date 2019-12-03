@@ -31,7 +31,7 @@ install:
     - platformio platform install -f infineonxmc
 
 script:
-    - python3 -m coverage run platformio ci --lib="." --board=xmc1100_xmc2go --board=xmc1100_boot_kit --board=xmc4700_relax_kit --board=uno --board nodemcuv2
+    -  platformio ci --lib="." --coverage run --board=xmc1100_xmc2go --board=xmc1100_boot_kit --board=xmc4700_relax_kit --board=uno --board nodemcuv2
 
 after_success:
   - codecov
