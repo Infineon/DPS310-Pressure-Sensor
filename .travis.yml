@@ -1,8 +1,10 @@
-language: python3
+language: python
 python:
-    - "3.0"
+    - 3.7
 
 sudo: required
+
+cache: pip
         
 branches:
       - master
@@ -22,7 +24,7 @@ env:
 
 install:
     # build with stable core
-    - pip install --upgrade pip
+    
     - pip install -U platformio
     - platformio platform install -f infineonxmc
 
