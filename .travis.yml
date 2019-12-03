@@ -24,6 +24,7 @@ env:
 
 install:
     # build with stable core
+    - pip install --upgrade pip
     - pip install -U platformio
     - platformio platform install -f infineonxmc
 
