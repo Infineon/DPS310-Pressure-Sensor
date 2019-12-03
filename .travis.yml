@@ -10,7 +10,7 @@ branches:
       - test
 
 env:
-    global:
+   
        
     matrix:
         - PLATFORMIO_CI_SRC=examples/i2c_background
