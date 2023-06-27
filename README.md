@@ -1,3 +1,7 @@
+# Attention:
+This library is deprecated and will be not maintained any longer. Please use the new [XENSIV™ Digital Pressure Sensor Arduino Library](https://github.com/Infineon/arduino-xensiv-dps3xx)
+library instead.
+
 # DPS310-Digital-Pressure-Sensor
 
 [![Build Status](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor.svg?branch=master)](https://travis-ci.org/Infineon/DPS310-Pressure-Sensor)
