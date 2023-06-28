@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Infineon/DPS310-Pressure-Sensor.git"
   },
-  "version": "1.0.7",
+  "version": "1.0.8",
   "frameworks": "arduino",
   "platforms": "infineonxmc"
 }
